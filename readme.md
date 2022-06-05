@@ -14,11 +14,11 @@ Features include:
 
 The main problem that is difficult to solve in network state
 synchronization (NSS) is how to account for the race conditions induced by
-the latency inherent in sending packets over the internet?
+the latency inherent in sending packets over the internet.
 
 The second and related problem is after you have received new information
 from a remote source that affects your local state, how do you gracefully
-update your state to account for the new information?
+update your state to account for the new information.
 
 Razor's objective is to automate the process of keeping remote states
 synchronized and gracefully updating the local state when new information
