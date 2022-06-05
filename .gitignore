@@ -1,5 +1,6 @@
 librazor.a
 razortest
+razortest.exe
 *.dll
 *.bak
 *.o

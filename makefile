@@ -14,12 +14,12 @@ GITCOMMIT = $(shell git log -1 --pretty=format:"%H")
 COMPILER_FLAGS = -MMD -w -std=c++17 -DGIT_COMMIT=\"$(GITCOMMIT)\" -Iinclude -fsanitize-undefined-trap-on-error 
 COMPILER_FLAGS_DEBUG = -ggdb -g
 
-LINKER_FLAGS = -lpthread -lSDL2 -lSDL2_net -lrazor
+LINKER_FLAGS = -lpthread -lSDL2 -lSDL2_net -Lrazor
 
 ifeq ($(OS),Windows_NT)
 	CC = g++
-	COMPILER_FLAGS_RELEASE += -mwindows
-	LINKER_FLAGS += -lmsvcrt
+#	COMPILER_FLAGS_RELEASE += 
+	LINKER_FLAGS += -lmsvcrt -mwindows
 else
 #	LINKER_FLAGS += -lGL -lGLEW -lGLU -ldl -lsteam_api
 endif
@@ -42,7 +42,7 @@ native: COMPILER_FLAGS_DEBUG =
 native release: $(LIB_NAME)
 
 test: test/main.cpp
-	$(CC) $(COMPILER_FLAGS) $(COMPILER_FLAGS_DEBUG) -o $(TEST_EXE) $< $(LINKER_FLAGS)
+	$(CC) $(COMPILER_FLAGS) $(COMPILER_FLAGS_DEBUG) -o $(TEST_EXE) $< $(LINKER_FLAGS) -lSDL2main
 
 # this has to do with -MMD and generates a depedency graph for objects
 -include $(OBJ_FILES:.o=.d)

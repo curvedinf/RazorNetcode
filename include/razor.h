@@ -1,19 +1,14 @@
 #pragma once
 
-//#include "server.h"
 #include "networking.h"
 #include "serialization.h"
 #include "rand.h"
 #include "misc.h"
 
-//#include "team_death_match.h"
-//#include "tracker_states.h"
-
-#include <map>
 #include <vector>
 #include <deque>
 
-extern std::string local_player_name;
+//extern std::string local_player_name;
 
 /*
 ==Protocol==
@@ -56,93 +51,93 @@ If the daemon or a slave detects no packets for TIMEOUT time, it will disconnect
 */
 
 // Amount of time after connecting to wait before adding the player. This allows local time to be synchronized.
-#define NETWORK_SYNC_CREATE_PLAYER_DELAY 500 * NANOS_PER_MILLI
+#define RAZOR_SYNC_CREATE_PLAYER_DELAY 500 * NANOS_PER_MILLI
 
 // Amount of time after adding the player to set the team. This allows the player to exist before its team is set.
-#define NETWORK_SYNC_SET_TEAM_DELAY 5 * NANOS_PER_MILLI
+#define RAZOR_SYNC_SET_TEAM_DELAY 5 * NANOS_PER_MILLI
 
 // Network timeout in game ticks
-#define NETWORK_SYNC_TIMEOUT 20000
+#define RAZOR_SYNC_TIMEOUT 20000
 
 // Maximum time before sending a keepalive to the daemon or clients
-#define NETWORK_SYNC_KEEPALIVE 5000
+#define RAZOR_SYNC_KEEPALIVE 5000
 
 // The number of past pings to find the maximum from
-#define NETWORK_SYNC_PING_LOG_LENGTH 10
+#define RAZOR_SYNC_PING_LOG_LENGTH 10
 
 // The multiplier on top of ping. This gives a buffer of time for commands to be received at the server
-#define NETWORK_SYNC_FUTURE_TIME_PING_MULTIPLIER 1.4
+#define RAZOR_SYNC_FUTURE_TIME_PING_MULTIPLIER 1.4
 
 // Fixed amount of future time to add on top of multiplier. This is to account for other player's pings when
 // the server sends your command to them.
-#define NETWORK_SYNC_FUTURE_TIME_PING_FIXED_FUTURE 30 * NANOS_PER_MILLI
+#define RAZOR_SYNC_FUTURE_TIME_PING_FIXED_FUTURE 30 * NANOS_PER_MILLI
 
 // Maximum value of future time before triggering high-ping self-disconnect
-#define NETWORK_SYNC_MAX_FUTURE_TIME_HIGH_PING 1000 * NANOS_PER_MILLI
+#define RAZOR_SYNC_MAX_FUTURE_TIME_HIGH_PING 1000 * NANOS_PER_MILLI
 
 // Maximum time of high ping before disconnect in ticks
-#define NETWORK_SYNC_MAX_HIGH_PING_LENGTH 10000
+#define RAZOR_SYNC_MAX_HIGH_PING_LENGTH 10000
 
 // Change per frame for future_time to reach target_future_time
-#define NETWORK_SYNC_FUTURE_TIME_TRACK_TARGET 0.1
+#define RAZOR_SYNC_FUTURE_TIME_TRACK_TARGET 0.1
 
 // Size of the working memory for sends
-#define NETWORK_SYNC_SEND_BUFFER_SIZE 1024*1024
+#define RAZOR_SYNC_SEND_BUFFER_SIZE 1024*1024
 
 // Maximum commands per packet
-#define NETWORK_SYNC_MAX_COMMANDS_PER_PACKET 5
+#define RAZOR_SYNC_MAX_COMMANDS_PER_PACKET 5
 
 // Maximum length of a command
-#define NETWORK_SYNC_MAX_COMMAND_LENGTH 200
+#define RAZOR_SYNC_MAX_COMMAND_LENGTH 200
 
 // Maximum ticks in the future for a command
-#define NETWORK_SYNC_COMMAND_MAX_FUTURE 2000
+#define RAZOR_SYNC_COMMAND_MAX_FUTURE 2000
 
 // number of nanoseconds to wait before sending another ping request
-#define NETWORK_SYNC_PING_DELAY 1000 * NANOS_PER_MILLI
+#define RAZOR_SYNC_PING_DELAY 1000 * NANOS_PER_MILLI
 
 // number of pings to average
-#define NETWORK_SYNC_PING_LOG_SIZE 10
+#define RAZOR_SYNC_PING_LOG_SIZE 10
 
 // number of game ticks to wait before requesting a new sync
-#define NETWORK_SYNC_SYNC_DELAY 250
+#define RAZOR_SYNC_SYNC_DELAY 250
 
 // number of game ticks to accumulate commands before sending
-#define NETWORK_SYNC_COMMAND_DELAY 10
+#define RAZOR_SYNC_COMMAND_DELAY 10
 
 // Destination/Source special case host strings
-#define NETWORK_SYNC_LOCAL "LOCAL"
-#define NETWORK_SYNC_BROADCAST "BROADCAST"
+#define RAZOR_SYNC_LOCAL "LOCAL"
+#define RAZOR_SYNC_BROADCAST "BROADCAST"
 
 // == Packet Types ==
 
 // Command packets contain a list of broadcast console commands
-#define NETWORK_SYNC_TYPE_COMMAND 1
+#define RAZOR_SYNC_TYPE_COMMAND 1
 
 // Sync packets contain the updated serialized state
-#define NETWORK_SYNC_TYPE_SYNC 2
+#define RAZOR_SYNC_TYPE_SYNC 2
 
 // Pong packets are sent back from the daemon occassionally with the time difference to the slaves
-#define NETWORK_SYNC_TYPE_PONG 3
+#define RAZOR_SYNC_TYPE_PONG 3
 
 // Request full sync packets request a new full sync
-#define NETWORK_SYNC_TYPE_REQUEST_FULL 4
+#define RAZOR_SYNC_TYPE_REQUEST_FULL 4
 
 // Disconnect packets are a courtesy to request stop broadcasting
-#define NETWORK_SYNC_TYPE_DISCONNECT 5
+#define RAZOR_SYNC_TYPE_DISCONNECT 5
 
 // Ping packets are sent by slaves to request new pongs
-#define NETWORK_SYNC_TYPE_PING 6
+#define RAZOR_SYNC_TYPE_PING 6
 
 
-class NetworkSyncer {
+class Razor {
 public:
 	Connection connection;
 	
 	struct NetworkMessage {
 		unsigned char type;
 		std::string origin_host_and_port;
-		std::string dest_host_and_port; // if == to NETWORK_SYNC_BROADCAST, will be sent to all
+		std::string dest_host_and_port; // if == to RAZOR_SYNC_BROADCAST, will be sent to all
 		unsigned long long timestamp; // timestamps are absolute to the epoch
 		unsigned long long ticknumber; // ticknumbers are relative / dynamic
 		std::string message;
@@ -156,19 +151,16 @@ public:
 	// queue for messages waiting to be sent
 	std::deque<NetworkMessage> send_queue;
 	
-	// for slaves only, the last NETWORK_SYNC_PING_LOG_LENGTH of pings
+	// for slaves only, the last RAZOR_SYNC_PING_LOG_LENGTH of pings
 	std::deque<long long> ping_log;
 	
-	// for slaves only, the last NETWORK_SYNC_PING_LOG_LENGTH of time_deltas
+	// for slaves only, the last RAZOR_SYNC_PING_LOG_LENGTH of time_deltas
 	std::deque<long long> time_delta_log;
 	
 	bool daemon, slaved;
 	std::string daemon_host_and_port;
 	
 	std::deque<OutgoingCommand> outgoing_commands;
-	
-	// map of saved server states indexed by frame number
-	// std::map<unsigned long long, GameServerState> server_states;
 	
 	// ping in nanoseconds. Generated from a moving average of ping_log.
 	long long ping;
@@ -203,7 +195,7 @@ public:
 	unsigned long long next_command_time;
 	
 	
-	NetworkSyncer(std::string name) {
+	Razor() {
 		this->daemon = false;
 		this->slaved = false;
 		this->first_ping = true;
@@ -213,9 +205,9 @@ public:
 		this->set_team = false;
 		this->set_team_delay = 0;
 		this->daemon_host_and_port = "";
-		this->send_buffer = new char[NETWORK_SYNC_SEND_BUFFER_SIZE];
-		this->packed_command_buffer = new char[NETWORK_SYNC_MAX_COMMANDS_PER_PACKET * 
-													(NETWORK_SYNC_MAX_COMMAND_LENGTH + 8)
+		this->send_buffer = new char[RAZOR_SYNC_SEND_BUFFER_SIZE];
+		this->packed_command_buffer = new char[RAZOR_SYNC_MAX_COMMANDS_PER_PACKET * 
+													(RAZOR_SYNC_MAX_COMMAND_LENGTH + 8)
 													+ 2]; // extra 2 for number of commands
 		this->future_time = 0;
 		this->target_future_time = 0;
@@ -227,7 +219,7 @@ public:
 		this->time_delta_to_daemon = 0;
 	};
 	
-	~NetworkSyncer() {
+	~Razor() {
 	}
 	
 	void destroy() {
@@ -260,8 +252,8 @@ public:
 		
 		// add a buffer of future time to account for ping spikes
 		unsigned long long future_time = (max_ping/2.0f) // 1-way travel time
-			* NETWORK_SYNC_FUTURE_TIME_PING_MULTIPLIER // ping spike headroom
-			+ NETWORK_SYNC_FUTURE_TIME_PING_FIXED_FUTURE; // fixed ping spike headroom
+			* RAZOR_SYNC_FUTURE_TIME_PING_MULTIPLIER // ping spike headroom
+			+ RAZOR_SYNC_FUTURE_TIME_PING_FIXED_FUTURE; // fixed ping spike headroom
 		
 		//std::cout << "avg_td " << avg_td / NANOS_PER_MILLI;
 		//std::cout << " max_ping " << max_ping / NANOS_PER_MILLI;
@@ -309,9 +301,9 @@ public:
 	}
 	
 	int serializeCommand(char* data, int pos, unsigned long long tick_number, std::string* command) {
-		if(command->length() > NETWORK_SYNC_MAX_COMMAND_LENGTH) {
+		if(command->length() > RAZOR_SYNC_MAX_COMMAND_LENGTH) {
 			std::cout << "< WARNING: Command serialization over length: " << command->length() 
-					<< " > " << NETWORK_SYNC_MAX_COMMAND_LENGTH << " [" << *command << "]" << std::endl;
+					<< " > " << RAZOR_SYNC_MAX_COMMAND_LENGTH << " [" << *command << "]" << std::endl;
 		}
 		int len = 0;
 		len += copyInLL(data, pos+len, tick_number);
@@ -322,9 +314,9 @@ public:
 	int deserializeCommand(char* data, int pos, unsigned long long *tick_number, std::string *command) {
 		int len = 0;
 		len += copyOutLL((long long*)tick_number, data, pos+len);
-		if(len > NETWORK_SYNC_MAX_COMMAND_LENGTH) {
+		if(len > RAZOR_SYNC_MAX_COMMAND_LENGTH) {
 			std::cout << "< WARNING: Command deserialization over length: " << len 
-					<< " > " << NETWORK_SYNC_MAX_COMMAND_LENGTH << std::endl;
+					<< " > " << RAZOR_SYNC_MAX_COMMAND_LENGTH << std::endl;
 		}
 		len += copyOutString(command, data, pos+len);
 		return len;
@@ -332,7 +324,7 @@ public:
 	
 	void queueOutgoingNetworkMessage(std::string dest, unsigned char type, std::string& message) {
 		NetworkMessage nm;
-		nm.origin_host_and_port = NETWORK_SYNC_LOCAL;
+		nm.origin_host_and_port = RAZOR_SYNC_LOCAL;
 		nm.dest_host_and_port = dest;
 		// TODO: setup current frame number
 		nm.ticknumber = 0;//this->server->frame_number;
@@ -345,7 +337,7 @@ public:
 	void queueOutgoingCommands() {
 		std::string dest;
 		if(this->daemon) {
-			dest = NETWORK_SYNC_BROADCAST;
+			dest = RAZOR_SYNC_BROADCAST;
 		} else {
 			if(!this->slaved) { // if not a daemon and not slaved, clear the queue and do nothing
 				this->clearOutgoingCommands();
@@ -363,18 +355,18 @@ public:
 			//std::cout << "< Sending command: " << out_command.command << std::endl;
 			
 			// discard long commands
-			if(out_command.command.size() > NETWORK_SYNC_MAX_COMMAND_LENGTH) {
+			if(out_command.command.size() > RAZOR_SYNC_MAX_COMMAND_LENGTH) {
 				std::cout << "< Command exceeds maximum length for network sync: " << out_command.command << std::endl;
 				continue;
 			}
 			pos += this->serializeCommand(packed_command_buffer, pos, out_command.tick_number, &out_command.command);
-			if(command_counter == NETWORK_SYNC_MAX_COMMANDS_PER_PACKET) {
+			if(command_counter == RAZOR_SYNC_MAX_COMMANDS_PER_PACKET) {
 				// if the max commands is reached, send a packed packet
 				std::string temp;
 				copyInS(this->packed_command_buffer, 0, command_counter); // number of commands at beginning
 				temp.resize(pos);
 				temp.assign(this->packed_command_buffer, pos);
-				queueOutgoingNetworkMessage(dest, NETWORK_SYNC_TYPE_COMMAND, temp);
+				queueOutgoingNetworkMessage(dest, RAZOR_SYNC_TYPE_COMMAND, temp);
 				pos = 2;
 				command_counter = 0;
 			} else {
@@ -388,7 +380,7 @@ public:
 			copyInS(this->packed_command_buffer, 0, command_counter); // number of commands at beginning
 			temp.resize(pos);
 			temp.assign(this->packed_command_buffer, pos);
-			queueOutgoingNetworkMessage(dest, NETWORK_SYNC_TYPE_COMMAND, temp);
+			queueOutgoingNetworkMessage(dest, RAZOR_SYNC_TYPE_COMMAND, temp);
 		}
 	}
 	
@@ -397,7 +389,7 @@ public:
 	void sendRequestFullSync() {
 		std::string empty;
 		this->queueOutgoingNetworkMessage(
-				this->daemon_host_and_port, NETWORK_SYNC_TYPE_REQUEST_FULL, empty);
+				this->daemon_host_and_port, RAZOR_SYNC_TYPE_REQUEST_FULL, empty);
 	}
 	
 	// Pongs also return the requester's timestamp
@@ -407,24 +399,25 @@ public:
 		std::string pong_str;
 		pong_str.resize(16);
 		pong_str.assign(pong_data, 16);
-		this->queueOutgoingNetworkMessage(dest, NETWORK_SYNC_TYPE_PONG, pong_str);
+		this->queueOutgoingNetworkMessage(dest, RAZOR_SYNC_TYPE_PONG, pong_str);
 	}
 	
 	// Ping the server
 	void sendPing(std::string dest) {
 		std::string ping_str = " ";
-		this->queueOutgoingNetworkMessage(dest, NETWORK_SYNC_TYPE_PING, ping_str);
+		this->queueOutgoingNetworkMessage(dest, RAZOR_SYNC_TYPE_PING, ping_str);
 	}
 	
 	void sendDisconnect(std::string dest) {
 		std::string empty;
 		this->queueOutgoingNetworkMessage(
-			dest, NETWORK_SYNC_TYPE_DISCONNECT, empty);
+			dest, RAZOR_SYNC_TYPE_DISCONNECT, empty);
 	}
 	
-	void sendSync(std::string dest, std::string* state, unsigned long long frame_number) {
+	void sendSync(std::string dest, unsigned long long frame_number) {
 		// TODO: Get sync state
 		//this->server->serializeState(&state);
+		 std::string* state = NULL;
 		
 		int pos = 0;
 		pos += copyInLL(send_buffer, pos, frame_number);
@@ -434,7 +427,7 @@ public:
 		message.resize(pos);
 		message.assign(send_buffer, pos);
 		
-		this->queueOutgoingNetworkMessage(dest, NETWORK_SYNC_TYPE_SYNC, message);
+		this->queueOutgoingNetworkMessage(dest, RAZOR_SYNC_TYPE_SYNC, message);
 		
 		std::cout << "< Sending full sync to " << dest << std::endl;
 	}
@@ -468,11 +461,11 @@ public:
 		unsigned long long end_timestamp = misc::nanoNow();
 		
 		// clean ping log
-		while(this->ping_log.size() >= NETWORK_SYNC_PING_LOG_SIZE)
+		while(this->ping_log.size() >= RAZOR_SYNC_PING_LOG_SIZE)
 			this->ping_log.pop_front();
 		
 		// clean time delta log
-		while(this->time_delta_log.size() >= NETWORK_SYNC_PING_LOG_SIZE)
+		while(this->time_delta_log.size() >= RAZOR_SYNC_PING_LOG_SIZE)
 			this->time_delta_log.pop_front();
 		
 		// the ping is the round trip time from slave->daemon->slave
@@ -508,7 +501,7 @@ public:
 		const char* buffer = nm->message.c_str();
 		int pos = 0;
 		pos += copyOutS((short*)&commands_number, (void*)buffer, pos);
-		if(commands_number > NETWORK_SYNC_MAX_COMMANDS_PER_PACKET) {
+		if(commands_number > RAZOR_SYNC_MAX_COMMANDS_PER_PACKET) {
 			std::cout << "< Received command packet with too many commands (" << commands_number << ")" << std::endl;
 			return;
 		}
@@ -516,7 +509,7 @@ public:
 			unsigned long long tick_number;
 			std::string command;
 			pos += deserializeCommand((char*)buffer, pos, &tick_number, &command);
-			if(command.size() > NETWORK_SYNC_MAX_COMMAND_LENGTH) {
+			if(command.size() > RAZOR_SYNC_MAX_COMMAND_LENGTH) {
 				std::cout << "< Received command over size limit (" << command.size() << ")" << std::endl;
 				return;
 			}
@@ -525,7 +518,7 @@ public:
 							<< " vs now " << frame_number << ")" << std::endl;
 				return;
 			}
-			if(this->daemon && tick_number - frame_number > NETWORK_SYNC_COMMAND_MAX_FUTURE) {
+			if(this->daemon && tick_number - frame_number > RAZOR_SYNC_COMMAND_MAX_FUTURE) {
 				std::cout << "< Received command too far in the future (" << tick_number << ") for now "
 							<< "(" << frame_number << ")" << std::endl;
 				return;
@@ -576,11 +569,13 @@ public:
 		if(this->first_sync) {
 			this->first_sync = false;
 			this->create_player = true;
-			this->create_player_delay = misc::nanoNow() + NETWORK_SYNC_CREATE_PLAYER_DELAY;
-			//std::cout << "Create player delay " << this->create_player_delay << " " << NETWORK_SYNC_CREATE_PLAYER_DELAY << std::endl;
+			this->create_player_delay = misc::nanoNow() + RAZOR_SYNC_CREATE_PLAYER_DELAY;
+			//std::cout << "Create player delay " << this->create_player_delay << " " << RAZOR_SYNC_CREATE_PLAYER_DELAY << std::endl;
 			// for the first sync, do a hard non-background resync. This is necessary to synchronize
 			// frame numbers and future time.
-			this->server->queueResync(&state, daemon_tick_number, local_time_difference);
+			
+			// TODO: initial resync
+			//this->server->queueResync(&state, daemon_tick_number, local_time_difference);
 		} else {
 			// I am leaving this non-background resync here for benchmarking purposes
 			//this->server->queueResync(&state, daemon_tick_number, local_time_difference);
@@ -603,37 +598,37 @@ public:
 		}
 	}
 	
-	void receiveMessages() {
+	void receiveMessages(unsigned long long frame_number, unsigned long long zero_time) {
 		std::string host_and_port, message;
 		
 		while(this->connection.receive(&host_and_port, &message)) {
 			NetworkMessage nm;
 			nm.origin_host_and_port = host_and_port;
-			nm.dest_host_and_port = NETWORK_SYNC_LOCAL;
+			nm.dest_host_and_port = RAZOR_SYNC_LOCAL;
 			
 			try {
 				this->deserializeMessage(&nm, (void*)message.c_str());
 				
-				if(nm.type == NETWORK_SYNC_TYPE_COMMAND) {
+				if(nm.type == RAZOR_SYNC_TYPE_COMMAND) {
 					//std::cout << "< Received command" << std::endl;
-					this->receiveCommands(&nm);
-				} else if(nm.type == NETWORK_SYNC_TYPE_SYNC) {
+					this->receiveCommands(&nm, frame_number);
+				} else if(nm.type == RAZOR_SYNC_TYPE_SYNC) {
 					std::cout << "< Received sync" << std::endl;
 					this->receiveSync(&nm);
-				} else if(nm.type == NETWORK_SYNC_TYPE_PONG) {
+				} else if(nm.type == RAZOR_SYNC_TYPE_PONG) {
 					std::cout << "< Received pong" << std::endl;
-					this->receivePong(&nm);
-				} else if(nm.type == NETWORK_SYNC_TYPE_REQUEST_FULL) {
+					this->receivePong(&nm, zero_time);
+				} else if(nm.type == RAZOR_SYNC_TYPE_REQUEST_FULL) {
 					if(!this->daemon) // slaves should ignore sync requests
 						continue;
 					std::cout << "< Received request full" << std::endl;
-					this->sendPong(nm.origin_host_and_port, nm.timestamp);
-					this->sendSync(nm.origin_host_and_port);
-				} else if(nm.type == NETWORK_SYNC_TYPE_PING) {
+					this->sendPong(nm.origin_host_and_port, nm.timestamp, zero_time);
+					this->sendSync(nm.origin_host_and_port, frame_number);
+				} else if(nm.type == RAZOR_SYNC_TYPE_PING) {
 					if(!this->daemon) // slaves should ignore ping requests
 						continue;
-					this->sendPong(nm.origin_host_and_port, nm.timestamp);
-				} else if(nm.type == NETWORK_SYNC_TYPE_DISCONNECT) {
+					this->sendPong(nm.origin_host_and_port, nm.timestamp, zero_time);
+				} else if(nm.type == RAZOR_SYNC_TYPE_DISCONNECT) {
 					// TODO
 				} else {
 					std::cout << "< Received unknown network sync packet type." << std::endl;
@@ -646,16 +641,16 @@ public:
 	}
 	
 	void clearSendQueue() {
-		std::queue<NetworkMessage> empty;
+		std::deque<NetworkMessage> empty;
 		std::swap(this->send_queue, empty);
 	}
 	
 	void clearOutgoingCommands() {
-		std::queue<OutgoingCommand> empty;
+		std::deque<OutgoingCommand> empty;
 		std::swap(this->outgoing_commands, empty);
 	}
 	
-	void sendMessages() {
+	void sendMessages(unsigned long long frame_number) {
 		// if a slave with no daemon, do not send.
 		if(!this->daemon && !this->slaved) {
 			this->clearSendQueue();
@@ -667,21 +662,21 @@ public:
 			this->clearOutgoingCommands();
 		}
 		
-		if(this->next_command_time < this->server->frame_number) {
-			this->next_command_time = this->server->frame_number + NETWORK_SYNC_COMMAND_DELAY;
+		if(this->next_command_time < frame_number) {
+			this->next_command_time = frame_number + RAZOR_SYNC_COMMAND_DELAY;
 			this->queueOutgoingCommands();
 		}
 		
 		while(this->send_queue.size() != 0) {
 			auto nm = this->send_queue.front();
-			this->send_queue.pop();
+			this->send_queue.pop_front();
 			int length = this->serializeMessage(this->send_buffer, &nm);
 			std::string message_serialized;
 			message_serialized.resize(length);
 			message_serialized.assign(this->send_buffer, length);
 			bool result = false;
 			//std::cout << "< Sending message to " << nm.dest_host_and_port << " : " << message_serialized << std::endl;
-			if(nm.dest_host_and_port == NETWORK_SYNC_BROADCAST) {
+			if(nm.dest_host_and_port == RAZOR_SYNC_BROADCAST) {
 				result = this->connection.sendAll(message_serialized);
 			} else {
 				result = this->connection.send(nm.dest_host_and_port, message_serialized);
@@ -697,30 +692,31 @@ public:
 		this->future_time = this->target_future_time;
 		
 		//(this->target_future_time - this->future_time) 
-		//* NETWORK_SYNC_FUTURE_TIME_TRACK_TARGET + this->future_time;
+		//* RAZOR_SYNC_FUTURE_TIME_TRACK_TARGET + this->future_time;
 		//std::cout << "target_future_time " << this->target_future_time / NANOS_PER_MILLI << std::endl;
 		//std::cout << "future_time " << this->future_time / NANOS_PER_MILLI  << std::endl;
 		
-		this->server->setLocalTimeDifference(this->future_time);
+		// TODO: set local time difference
+		//this->server->setLocalTimeDifference(this->future_time);
 		
-		// TODO: NETWORK_SYNC_MAX_FUTURE_TIME_HIGH_PING
+		// TODO: RAZOR_SYNC_MAX_FUTURE_TIME_HIGH_PING
 	}
 	
-	void daemonTick() {
-		unsigned long long now_tick = this->server->frame_number;
-		if(this->next_sync_tick <= now_tick) {
-			this->next_sync_tick = this->server->frame_number + NETWORK_SYNC_SYNC_DELAY;
-			this->sendSync(NETWORK_SYNC_BROADCAST); //this->last_sync_tick); delta syncs need work
-			this->last_sync_tick = now_tick;
+	void daemonTick(unsigned long long frame_number) {
+		if(this->next_sync_tick <= frame_number) {
+			this->next_sync_tick = frame_number + RAZOR_SYNC_SYNC_DELAY;
+			this->sendSync(RAZOR_SYNC_BROADCAST, frame_number); //this->last_sync_tick); delta syncs need work
+			this->last_sync_tick = frame_number;
 		}
 	}
 	
-	void slaveTick() {
+	void slaveTick(unsigned long long frame_number) {
 		this->connectIfNeeded();
 		this->updateFutureTime();
 		
 		auto now = misc::nanoNow();
 		
+		/* TODO: connection event
 		if(this->create_player && !this->first_ping) {
 			if(now > this->create_player_delay) {
 				this->create_player = false;
@@ -728,34 +724,35 @@ public:
 					this->server->console(std::string("player add player-").append(local_player_name).append(" unit-").append(local_player_name));
 				}
 				this->set_team = true;
-				this->set_team_delay = now + NETWORK_SYNC_SET_TEAM_DELAY;
+				this->set_team_delay = now + RAZOR_SYNC_SET_TEAM_DELAY;
 			}
 		}
 		if(this->set_team && now > this->set_team_delay) {
 			//TODO: Clean up set_team
 			//this->server->console(std::string("scenario setplayerteam ").append(local_player_name).append(" ").append(TEAM_1_NAME));
 			this->set_team = false;
-		}
+		}*/
 		if(this->next_ping_time <= now) {
 			//std::cout << "here " << now << " " << this->next_ping_time << std::endl;
-			this->next_ping_time = now + NETWORK_SYNC_PING_DELAY;
+			this->next_ping_time = now + RAZOR_SYNC_PING_DELAY;
 			this->sendPing(this->daemon_host_and_port);
 		}
 	}
 	
-	void tick() {
-		this->receiveMessages();
+	void tick(unsigned long long frame_number, unsigned long long zero_time) {
+		this->receiveMessages(frame_number, zero_time);
 		
 		if(this->daemon) {
-			this->daemonTick();
+			this->daemonTick(frame_number);
 		} else {
-			this->slaveTick();
+			this->slaveTick(frame_number);
 		}
 		
-		this->sendMessages();
+		this->sendMessages(frame_number);
 	}
 	
-	bool console(std::vector<std::string> parts, bool broadcast) {
+	// TODO: Replace console commands with functions
+	/*bool console(std::vector<std::string> parts, bool broadcast) {
 		if(misc::comGet(parts,0) == "networkport") {
 			std::string port_str = misc::comGet(parts,1);
 			int port = std::stoi(port_str);
@@ -803,5 +800,5 @@ public:
 			}
 		}
 		return false;
-	}
+	}*/
 };
