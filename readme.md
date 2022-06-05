@@ -112,7 +112,7 @@ Run the test executable:
 # Using Razor in Your Project
 
 Razor is designed to be used as a static library. To link against it,
-add put librazor.a into your project directory, and add `./librazor.a` 
+add librazor.a into your project directory and add `./librazor.a` 
 to your linking step next to your object files. Ensure
 Razor's includes are in your project's includes directory.
 
