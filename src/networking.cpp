@@ -1,7 +1,3 @@
-#ifndef GIT_COMMIT
-#define GIT_COMMIT "UNKNOWN"
-#endif
-
 #include "networking.h"
 
 unsigned int cur_local_packet_id = 1;
@@ -11,7 +7,7 @@ void initializeNetworking() {
 }
 
 // Returns 0 on success. Otherwise returns the number of the test that failed.
-int networking_unitTest() {
+int networkingUnitTest() {
 	initializeNetworking();
 	
 	Connection c1, c2;

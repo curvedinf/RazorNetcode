@@ -242,7 +242,7 @@ unsigned int copyOutBV(bool* out, unsigned char* bool_num, void *data, unsigned 
 	return length;
 }
 
-int serialization_unitTest() {
+int serializationUnitTest() {
 	
 	// Test serialization
 	bool bin = true;

@@ -39,4 +39,4 @@ unsigned int copyOutQ4(Quaternion* out, void* data, unsigned int position);
 unsigned int copyOutM44(Matrix44* out, void* data, unsigned int position);
 unsigned int copyOutBV(bool* out, unsigned char* bool_num, void *data, unsigned int position); // supports up to 255 bools
 
-int serialization_unitTest();
+int serializationUnitTest();

@@ -460,4 +460,4 @@ public:
 void initializeNetworking();
 
 // Returns 0 on success. Otherwise returns the number of the test that failed.
-int networking_unitTest();
+int networkingUnitTest();
