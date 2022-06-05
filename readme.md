@@ -6,6 +6,7 @@ the internet.
 Features include:
 
 * A light-weight, low latency, immediate-mode API for clients and servers
+* Compiles on Windows, Linux, and OSX
 * Compatible with any type of data state from FPS games to strategy to realtime business applications
 * Engine-agnostic design that can be integrated into small and large projects
 * Data types that automatically serialize and deserialize
@@ -83,6 +84,36 @@ necessary to build accurate states of the past that can be used to simulate the 
 as part of an overall latency resolution strategy. Razor provides an example latency 
 resolution strategy to model your application after.
 
-# How to run Razor
+# Compiling Razor
 
-(Documentation is under development)
+Dependencies:
+* g++-10 or higher
+* make
+* pthread
+* SDL2
+* SDL2_net 
+* curl
+
+Build the static library (librazor.a):
+```
+make
+```
+
+Build the test executable:
+```
+make test
+```
+
+Run the test executable:
+```
+./razortest
+```
+
+# Using Razor in Your Project
+
+Razor is designed to be used as a static library. To link against it,
+add put librazor.a into your project directory, and add `./librazor.a` 
+to your linking step next to your object files. Ensure
+Razor's includes are in your project's includes directory.
+
+API Documentation for razor is pending.
