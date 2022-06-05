@@ -14,7 +14,7 @@ Features include:
 # Razor's Objective
 
 The main problem that is difficult to solve in network state
-synchronization (NSS) is how to account for the race conditions induced by
+synchronization is how to account for the race conditions induced by
 the latency inherent in sending packets over the internet.
 
 The second and related problem is after you have received new information
