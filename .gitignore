@@ -1,0 +1,7 @@
+librazor.a
+razortest
+*.dll
+*.bak
+*.o
+*.d
+.vs/**
