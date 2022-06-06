@@ -41,11 +41,11 @@ Razor assumes your application is capable of the following:
 * Manipulating the application's current frame number
 * Serialization and deserialization of commands
 
-Additionally, you can increase the effectiveness of your application's state manipulation
+Additionally, you can increase the effectiveness of your application's synchronization
 with the following additional features:
 
 * Ability to rewind and fast-forward through time
-* Ability to record and change commands
+* Ability to record and authorize commands
 
 # Razor's Approach
 
