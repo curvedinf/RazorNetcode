@@ -77,7 +77,7 @@ create and respond to them. Events are useful if you would like to ensure your
 chronographically-fluid application has certain things not be replayed multiple times. A 
 good example is a death animation.
 
-Additionally, Razor provides a suite of timing synchronization tools that will be provided to
+Additionally, Razor provides a suite of timing synchronization tools that will be available to
 your application automatically. Razor will calculate the difference between local and remote
 clocks, estimate the latency to the server, and provide you all the frame and timing data
 necessary to build accurate states of the past that can be used to simulate the future
