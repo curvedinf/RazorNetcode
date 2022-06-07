@@ -221,7 +221,7 @@ namespace razor {
 		};
 		
 		~Razor() {
-			
+			this->destroy();
 		}
 		
 		void destroy() {
