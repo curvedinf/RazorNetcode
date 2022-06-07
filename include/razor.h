@@ -194,6 +194,7 @@ namespace razor {
 		// Command send delay timer
 		unsigned long long next_command_time;
 		
+		bool destroyed;
 		
 		Razor() {
 			this->daemon = false;
@@ -205,10 +206,6 @@ namespace razor {
 			this->set_team = false;
 			this->set_team_delay = 0;
 			this->daemon_host_and_port = "";
-			this->send_buffer = new char[RAZOR_SYNC_SEND_BUFFER_SIZE];
-			this->packed_command_buffer = new char[RAZOR_SYNC_MAX_COMMANDS_PER_PACKET * 
-														(RAZOR_SYNC_MAX_COMMAND_LENGTH + 8)
-														+ 2]; // extra 2 for number of commands
 			this->future_time = 0;
 			this->target_future_time = 0;
 			this->next_sync_tick = 0;
@@ -217,16 +214,24 @@ namespace razor {
 			this->next_command_time = 0;
 			this->ping = 0;
 			this->time_delta_to_daemon = 0;
+			this->destroyed = false;
+			this->send_buffer = new char[RAZOR_SYNC_SEND_BUFFER_SIZE];
+			this->packed_command_buffer = new char[RAZOR_SYNC_MAX_COMMANDS_PER_PACKET * 
+														(RAZOR_SYNC_MAX_COMMAND_LENGTH + 8)
+														+ 2]; // extra 2 for number of commands
 		};
 		
 		~Razor() {
+			
 		}
 		
 		void destroy() {
-			this->connection.closeSocket(); // force close
-			std::cout << "< Closed networking socket." << std::endl;
-			delete [] this->send_buffer;
-			delete [] this->packed_command_buffer;
+			if(!this->destroyed) {
+				this->connection.closeSocket(); // force close
+				std::cout << "< Closed networking socket." << std::endl;
+				delete [] this->send_buffer;
+				delete [] this->packed_command_buffer;
+			}
 		}
 		
 		unsigned long long calculateLocalTimeDifference() {
@@ -583,7 +588,7 @@ namespace razor {
 				// Force a "priority" replay. This causes all other replays in queue to be deleted and causes the whole server
 				// to be deserialized once updated.
 				
-				// inter-heurisitc talk is dangerous, but this is necessary because the state might be large.
+				// inter-heuristic talk is dangerous, but this is necessary because the state might be large.
 				
 				// TODO: remake state resynchronization
 				/*auto ts = (TrackerStates*)this->server->getHeuristic(HEURISTIC_TRACKER_STATES);

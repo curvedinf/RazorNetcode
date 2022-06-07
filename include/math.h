@@ -1,7 +1,5 @@
 #pragma once
 
-// Should probably switch to https://github.com/g-truc/glm or http://google.github.io/mathfu/
-
 #include <string>
 #include <cstring>
 #include <sstream>
@@ -86,10 +84,10 @@ namespace razor {
 			this->add(temp.copy(o)->sub(this)->mult(t));
 			return this;
 		}
-		Vector3* randomUnit() { // DO NOT USE WITHIN A SERVER -- WILL NOT SYNCRONIZE
-			this->x = rand() % 1000 - 500;
-			this->y = rand() % 1000 - 500;
-			this->z = rand() % 1000 - 500;
+		Vector3* simpleRandomUnit() {
+			this->x = rand() % 10000 - 5000;
+			this->y = rand() % 10000 - 5000;
+			this->z = rand() % 10000 - 5000;
 			this->normalize();
 			return this;
 		}
