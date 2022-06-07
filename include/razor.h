@@ -51,10 +51,10 @@ If the daemon or a slave detects no packets for TIMEOUT time, it will disconnect
 */
 
 // Amount of time after connecting to wait before adding the player. This allows local time to be synchronized.
-#define RAZOR_SYNC_CREATE_PLAYER_DELAY 500 * NANOS_PER_MILLI
+#define RAZOR_SYNC_CREATE_PLAYER_DELAY 500 * RAZOR_NANOS_PER_MILLI
 
 // Amount of time after adding the player to set the team. This allows the player to exist before its team is set.
-#define RAZOR_SYNC_SET_TEAM_DELAY 5 * NANOS_PER_MILLI
+#define RAZOR_SYNC_SET_TEAM_DELAY 5 * RAZOR_NANOS_PER_MILLI
 
 // Network timeout in game ticks
 #define RAZOR_SYNC_TIMEOUT 20000
@@ -70,10 +70,10 @@ If the daemon or a slave detects no packets for TIMEOUT time, it will disconnect
 
 // Fixed amount of future time to add on top of multiplier. This is to account for other player's pings when
 // the server sends your command to them.
-#define RAZOR_SYNC_FUTURE_TIME_PING_FIXED_FUTURE 30 * NANOS_PER_MILLI
+#define RAZOR_SYNC_FUTURE_TIME_PING_FIXED_FUTURE 30 * RAZOR_NANOS_PER_MILLI
 
 // Maximum value of future time before triggering high-ping self-disconnect
-#define RAZOR_SYNC_MAX_FUTURE_TIME_HIGH_PING 1000 * NANOS_PER_MILLI
+#define RAZOR_SYNC_MAX_FUTURE_TIME_HIGH_PING 1000 * RAZOR_NANOS_PER_MILLI
 
 // Maximum time of high ping before disconnect in ticks
 #define RAZOR_SYNC_MAX_HIGH_PING_LENGTH 10000
@@ -94,7 +94,7 @@ If the daemon or a slave detects no packets for TIMEOUT time, it will disconnect
 #define RAZOR_SYNC_COMMAND_MAX_FUTURE 2000
 
 // number of nanoseconds to wait before sending another ping request
-#define RAZOR_SYNC_PING_DELAY 1000 * NANOS_PER_MILLI
+#define RAZOR_SYNC_PING_DELAY 1000 * RAZOR_NANOS_PER_MILLI
 
 // number of pings to average
 #define RAZOR_SYNC_PING_LOG_SIZE 10
@@ -259,9 +259,9 @@ public:
 		//std::cout << " max_ping " << max_ping / NANOS_PER_MILLI;
 		//std::cout << " ping_headroom " << ping_headroom / NANOS_PER_MILLI << std::endl;
 		
-		this->ping = max_ping / NANOS_PER_MILLI;
-		this->time_delta_to_daemon = avg_td / NANOS_PER_MILLI;
-		this->future_time = future_time / NANOS_PER_MILLI;
+		this->ping = max_ping / RAZOR_NANOS_PER_MILLI;
+		this->time_delta_to_daemon = avg_td / RAZOR_NANOS_PER_MILLI;
+		this->future_time = future_time / RAZOR_NANOS_PER_MILLI;
 		
 		return avg_td - future_time;
 	}
@@ -328,7 +328,7 @@ public:
 		nm.dest_host_and_port = dest;
 		// TODO: setup current frame number
 		nm.ticknumber = 0;//this->server->frame_number;
-		nm.timestamp = misc::nanoNow();
+		nm.timestamp = razor::nanoNow();
 		nm.type = type;
 		nm.message = message;
 		this->send_queue.push_back(nm);
@@ -458,7 +458,7 @@ public:
 		unsigned long long start_timestamp;
 		deserializePong((char*)nm->message.c_str(), &start_timestamp, &(this->daemon_zero_time));
 		unsigned long long bounce_timestamp = nm->timestamp;
-		unsigned long long end_timestamp = misc::nanoNow();
+		unsigned long long end_timestamp = razor::nanoNow();
 		
 		// clean ping log
 		while(this->ping_log.size() >= RAZOR_SYNC_PING_LOG_SIZE)
@@ -569,7 +569,7 @@ public:
 		if(this->first_sync) {
 			this->first_sync = false;
 			this->create_player = true;
-			this->create_player_delay = misc::nanoNow() + RAZOR_SYNC_CREATE_PLAYER_DELAY;
+			this->create_player_delay = razor::nanoNow() + RAZOR_SYNC_CREATE_PLAYER_DELAY;
 			//std::cout << "Create player delay " << this->create_player_delay << " " << RAZOR_SYNC_CREATE_PLAYER_DELAY << std::endl;
 			// for the first sync, do a hard non-background resync. This is necessary to synchronize
 			// frame numbers and future time.
@@ -714,7 +714,7 @@ public:
 		this->connectIfNeeded();
 		this->updateFutureTime();
 		
-		auto now = misc::nanoNow();
+		auto now = razor::nanoNow();
 		
 		/* TODO: connection event
 		if(this->create_player && !this->first_ping) {
@@ -753,8 +753,8 @@ public:
 	
 	// TODO: Replace console commands with functions
 	/*bool console(std::vector<std::string> parts, bool broadcast) {
-		if(misc::comGet(parts,0) == "networkport") {
-			std::string port_str = misc::comGet(parts,1);
+		if(razor::comGet(parts,0) == "networkport") {
+			std::string port_str = razor::comGet(parts,1);
 			int port = std::stoi(port_str);
 			
 			std::string remote;
@@ -769,20 +769,20 @@ public:
 			else
 				std::cout << "< Failed to open listening port " << port << std::endl;
 			return true;
-		} else if(misc::comGet(parts,0) == "enablecompression") {
+		} else if(razor::comGet(parts,0) == "enablecompression") {
 			this->connection.enableCompression();
 			return true;
-		} else if(misc::comGet(parts,0) == "daemon") {
+		} else if(razor::comGet(parts,0) == "daemon") {
 			this->daemon = true;
 			std::cout << "< Activating daemon mode" << std::endl;
 			return true;
-		} else if(misc::comGet(parts,0) == "lognetworking") {
+		} else if(razor::comGet(parts,0) == "lognetworking") {
 			this->connection.enableLogging();
 			std::cout << "< Enabling network logging" << std::endl;
 			return true;
-		} else if(misc::comGet(parts,0) == "daemonaddr") {
+		} else if(razor::comGet(parts,0) == "daemonaddr") {
 			this->daemon = false;
-			this->daemon_host_and_port = misc::comGet(parts,1);
+			this->daemon_host_and_port = razor::comGet(parts,1);
 			std::cout << "< Connecting to daemon at " << this->daemon_host_and_port << std::endl;
 			return true;
 		} else {		

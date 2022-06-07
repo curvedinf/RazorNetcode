@@ -187,43 +187,6 @@ public:
 	}
 	Matrix44* multiply(Matrix44* o) {
 		Matrix44 result;
-		/*result[0] = this->matrix[0] * o->matrix[0] + this->matrix[1] * o->matrix[4] 
-						+ this->matrix[2] * o->matrix[8] + this->matrix[3] * o->matrix[12];
-		result[1] = this->matrix[0] * o->matrix[1] + this->matrix[1] * o->matrix[5] 
-						+ this->matrix[2] * o->matrix[9] + this->matrix[3] * o->matrix[13];
-		result[2] = this->matrix[0] * o->matrix[2] + this->matrix[1] * o->matrix[6] 
-						+ this->matrix[2] * o->matrix[10] + this->matrix[3] * o->matrix[14];
-		result[3] = this->matrix[0] * o->matrix[3] + this->matrix[1] * o->matrix[7] 
-						+ this->matrix[2] * o->matrix[11] + this->matrix[3] * o->matrix[15];
-		
-		result[4] = this->matrix[4] * o->matrix[0] + this->matrix[5] * o->matrix[4] 
-						+ this->matrix[6] * o->matrix[8] + this->matrix[7] * o->matrix[12];
-		result[5] = this->matrix[4] * o->matrix[1] + this->matrix[5] * o->matrix[5] 
-						+ this->matrix[6] * o->matrix[9] + this->matrix[7] * o->matrix[13];
-		result[6] = this->matrix[4] * o->matrix[2] + this->matrix[5] * o->matrix[6] 
-						+ this->matrix[6] * o->matrix[10] + this->matrix[7] * o->matrix[14];
-		result[7] = this->matrix[4] * o->matrix[3] + this->matrix[5] * o->matrix[7] 
-						+ this->matrix[6] * o->matrix[11] + this->matrix[7] * o->matrix[15];
-		
-		result[8] = this->matrix[8] * o->matrix[0] + this->matrix[9] * o->matrix[4] 
-						+ this->matrix[10] * o->matrix[8] + this->matrix[11] * o->matrix[12];
-		result[9] = this->matrix[8] * o->matrix[1] + this->matrix[9] * o->matrix[5] 
-						+ this->matrix[10] * o->matrix[9] + this->matrix[11] * o->matrix[12];
-		result[10] = this->matrix[8] * o->matrix[2] + this->matrix[9] * o->matrix[6] 
-						+ this->matrix[10] * o->matrix[10] + this->matrix[11] * o->matrix[12];
-		result[11] = this->matrix[8] * o->matrix[3] + this->matrix[9] * o->matrix[7] 
-						+ this->matrix[10] * o->matrix[11] + this->matrix[11] * o->matrix[12];
-		
-		result[12] = this->matrix[12] * o->matrix[0] + this->matrix[13] * o->matrix[4] 
-						+ this->matrix[14] * o->matrix[8] + this->matrix[15] * o->matrix[12];
-		result[13] = this->matrix[12] * o->matrix[1] + this->matrix[13] * o->matrix[5] 
-						+ this->matrix[14] * o->matrix[9] + this->matrix[15] * o->matrix[13];
-		result[14] = this->matrix[12] * o->matrix[2] + this->matrix[13] * o->matrix[6] 
-						+ this->matrix[14] * o->matrix[10] + this->matrix[15] * o->matrix[14];
-		result[15] = this->matrix[12] * o->matrix[3] + this->matrix[13] * o->matrix[7] 
-						+ this->matrix[14] * o->matrix[11] + this->matrix[15] * o->matrix[15];
-		this->copy(&result);*/
-		
 		result[0] = this->matrix[0]*o->matrix[0]+this->matrix[4]*o->matrix[1]+this->matrix[8]*o->matrix[2]+this->matrix[12]*o->matrix[3];
 		result[1] = this->matrix[1]*o->matrix[0]+this->matrix[5]*o->matrix[1]+this->matrix[9]*o->matrix[2]+this->matrix[13]*o->matrix[3];
 		result[2] = this->matrix[2]*o->matrix[0]+this->matrix[6]*o->matrix[1]+this->matrix[10]*o->matrix[2]+this->matrix[14]*o->matrix[3];

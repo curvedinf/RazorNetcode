@@ -21,7 +21,7 @@
 #define PACKET_MAX_SIZE 508
 #define PACKET_SEGMENT_MAX_SIZE PACKET_MAX_SIZE-12
 
-#define NETWORKING_MAX_DUPLICATE_WAIT 10 * NANOS_PER_SECOND
+#define NETWORKING_MAX_DUPLICATE_WAIT 10 * RAZOR_NANOS_PER_SECOND
 
 extern unsigned int cur_local_packet_id;
 
@@ -346,7 +346,7 @@ public:
 		}
 				
 		// Clean up old received_uids
-		auto now = misc::nanoNow();
+		auto now = razor::nanoNow();
 		for(auto i=this->received_uids.begin(); i!=this->received_uids.end(); ) {
 			if(now > i->second) {
 				i = this->received_uids.erase(i);
@@ -397,7 +397,7 @@ public:
 				// This is a duplicate packet. Throw it away.
 				continue;
 			} else {
-				this->received_uids.insert({packet_uid, misc::nanoNow() + NETWORKING_MAX_DUPLICATE_WAIT});
+				this->received_uids.insert({packet_uid, razor::nanoNow() + NETWORKING_MAX_DUPLICATE_WAIT});
 			}
 			
 			// register this host as a channel if it isn't already.
