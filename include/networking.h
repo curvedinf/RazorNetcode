@@ -114,7 +114,7 @@ namespace razor {
 	};
 
 
-	// Handles SDL_net channels, resolving IPs, 
+	// Handles SDL_net channels & resolving IPs
 	class Connection {
 	public:
 		unsigned short port;
@@ -396,7 +396,7 @@ namespace razor {
 					// This is a duplicate packet. Throw it away.
 					continue;
 				} else {
-					this->received_uids.insert({packet_uid, razor::nanoNow() + RAZOR_NETWORKING_MAX_DUPLICATE_WAIT});
+					this->received_uids.insert({packet_uid, now + RAZOR_NETWORKING_MAX_DUPLICATE_WAIT});
 				}
 				
 				// register this host as a channel if it isn't already.

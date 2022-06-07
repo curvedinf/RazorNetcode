@@ -7,9 +7,11 @@ Features include:
 
 * A light-weight, low latency, immediate-mode API for clients and servers
 * Compiles on Windows, Linux, and OSX
-* Compatible with any type of data state from FPS games to strategy to realtime business applications
+* Compatible with any type of data state from FPS games, to strategy, to realtime business applications
 * Engine-agnostic design that can be integrated into small and large projects
-* Data types that automatically serialize and deserialize
+* Syncable datatypes including Vector3, Matrix44, Quaternion, and Arrays
+* Syncable datastructs that encapsulate groups of data
+* Automatic multipart packet assembly and disassembly
 
 # Razor's Objective
 
@@ -24,6 +26,9 @@ update your state to account for the new information.
 Razor's objective is to automate the process of keeping remote states
 synchronized and helping to gracefully update the local state when 
 new information arrives.
+
+Additionally, Razor aims to make all this simple and free of byte
+manipulation for applications using the library.
 
 # What does Razor NOT do?
 

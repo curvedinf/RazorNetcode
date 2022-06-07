@@ -2,7 +2,6 @@
 
 #include "networking.h"
 #include "serialization.h"
-#include "rand.h"
 #include "misc.h"
 
 #include <vector>
