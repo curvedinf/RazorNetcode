@@ -13,6 +13,7 @@ Features include:
 * Syncable datastructs that encapsulate groups of data
 * Clock synchronization and latency estimation
 * Automatic multipart packet assembly and disassembly
+* An easy to use raw UDP Connection class with a few nice features
 
 # Razor's Objective
 

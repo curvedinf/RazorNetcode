@@ -340,7 +340,7 @@ namespace razor {
 	};
 
 	class Quaternion {
-		public:
+	public:
 		double W, X, Y, Z;
 
 		Quaternion() {
