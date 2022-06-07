@@ -1,6 +1,6 @@
 # Razor C++ State Synchronization (Netcode) Library
 
-Razor synchronizes the state of video game clients with a server over
+Razor synchronizes the state of multiple game clients with a server over
 the internet.
 
 Features include:
