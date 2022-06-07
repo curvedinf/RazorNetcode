@@ -11,6 +11,7 @@ Features include:
 * Engine-agnostic design that can be integrated into small and large projects
 * Syncable datatypes including Vector3, Matrix44, Quaternion, and Arrays
 * Syncable datastructs that encapsulate groups of data
+* Clock synchronization and latency estimation
 * Automatic multipart packet assembly and disassembly
 
 # Razor's Objective
@@ -80,13 +81,6 @@ Razor guarantees delivery and exact synchronicity of events. It is your responsi
 create and respond to them. Events are useful if you would like to ensure your 
 chronographically-fluid application has certain things not be replayed multiple times. A 
 good example is a death animation.
-
-Additionally, Razor provides a suite of timing synchronization tools that will be available to
-your application automatically. Razor will calculate the difference between local and remote
-clocks, estimate the latency to the server, and provide you all the frame and timing data
-necessary to build accurate states of the past that can be used to simulate the future
-as part of an overall latency resolution strategy. Razor provides an example latency 
-resolution strategy to model your application after.
 
 # Compiling Razor
 
