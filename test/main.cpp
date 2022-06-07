@@ -1,17 +1,16 @@
 #define SDL_MAIN_HANDLED
 #include "razor.h"
-#include "networking.h"
 
 int main(int argc, char *argv[])
 {
 	std::cout << "Unit-testing..." << std::endl;
-	int result = serializationUnitTest();
+	int result = razor::serializationUnitTest();
 	std::cout << "Serialization: " << (result==0 ? "Passed" : std::string("Failed ").append(std::to_string(result))) << std::endl;
 
-	result = networkingUnitTest();
+	result = razor::networkingUnitTest();
 	std::cout << "Networking: " << (result==0 ? "Passed" : std::string("Failed ").append(std::to_string(result))) << std::endl;
 	
-	auto r = new Razor();
+	auto r = new razor::Razor();
 	
 	return 0;
 }
