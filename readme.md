@@ -43,7 +43,6 @@ Razor assumes your application is capable of the following:
 
 * Serializing a data state (helper data types are included in Razor)
 * Deserializing a foreign data state and actualizing it into the current state (helpers included)
-* Manipulating the application's current frame number
 * Serialization and deserialization of commands
 
 Additionally, you can increase the effectiveness of your application's synchronization
