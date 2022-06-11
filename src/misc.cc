@@ -1,13 +1,5 @@
-module;
-
-#include <string>
-#include <sstream>
-#include <vector>
-#include <chrono>
-#include <iostream>
-#include <curl/curl.h>
-
-export module razor.misc;
+export module razor:misc;
+export import razor:includes;
 
 export namespace razor {
 	typedef unsigned long long int nanotime;

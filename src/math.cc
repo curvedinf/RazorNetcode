@@ -1,11 +1,5 @@
-module;
-
-#include <string>
-#include <cstring>
-#include <sstream>
-#include <cmath>
-
-export module razor.math;
+export module razor:math;
+export import razor:includes;
 
 export namespace razor {
 	inline constexpr double PI = 3.14159265358979323846;
