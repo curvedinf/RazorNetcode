@@ -11,7 +11,7 @@ AR = ar
 
 GITCOMMIT = $(shell git log -1 --pretty=format:"%H")
 
-COMPILER_FLAGS = -MMD -w -std=c++17 -DGIT_COMMIT=\"$(GITCOMMIT)\" -Iinclude -fsanitize-undefined-trap-on-error 
+COMPILER_FLAGS = -MMD -w -std=c++20 -DGIT_COMMIT=\"$(GITCOMMIT)\" -Iinclude -fsanitize-undefined-trap-on-error 
 COMPILER_FLAGS_DEBUG = -ggdb -g
 
 LINKER_FLAGS = -lpthread -lSDL2 -lSDL2_net -lcurl
