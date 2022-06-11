@@ -31,7 +31,7 @@ $(LIB_NAME): $(OBJ_FILES)
 	$(AR) rcs $@ $^
 
 clean :
-	-rm $(OBJ_FILES) $(LIB_NAME) $(D_FILES)
+	-rm $(OBJ_FILES) $(LIB_NAME) $(D_FILES) razortest.d
 
 release: COMPILER_FLAGS += -O3 -ffast-math -pipe
 release: COMPILER_FLAGS_DEBUG = 
