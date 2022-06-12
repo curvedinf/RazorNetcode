@@ -1,6 +1,6 @@
 #define SDL_MAIN_HANDLED
 
-import razor;
+#include "razor.h"
 
 int main(int argc, char *argv[])
 {

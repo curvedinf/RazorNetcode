@@ -1,11 +1,6 @@
-export module razor:misc;
-export import razor:includes;
+#include "misc.h"
 
-export namespace razor {
-	typedef unsigned long long int nanotime;
-	inline constexpr nanotime NANOS_PER_MILLI = 1'000'000ULL;
-	inline constexpr nanotime NANOS_PER_SECOND = 1'000'000'000ULL;
-	
+namespace razor {
 	nanotime nanoNow() {
 		return std::chrono::nanoseconds(
 				std::chrono::high_resolution_clock::now().time_since_epoch()
@@ -46,12 +41,12 @@ export namespace razor {
 	
 	bool download(const std::string& url,  
 				std::string* output,
-				std::vector<std::pair<std::string, std::string>>* get_args=NULL) {
+				std::vector<std::pair<std::string, std::string>>* get_args=nullptr) {
 		CURL* c = curl_easy_init();
 		
 		std::stringstream request;
 		request << url;
-		if(get_args != NULL && get_args->size() > 0) {
+		if(get_args != nullptr && get_args->size() > 0) {
 			request << "?";
 			for(int i=0; i<get_args->size(); i++) {
 				if(i!=0)
