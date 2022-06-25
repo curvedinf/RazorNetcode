@@ -1,27 +1,6 @@
 #include "serialization.h"
 
 namespace razor {
-	// Copy in a fixed-length datatype
-	unsigned int copyIn(void* data, unsigned int position, auto in_value) {
-		// Get the memory address
-		auto address = (uint8_t*)data+position;
-		// 1) Get the type of in_value and remove any reference from the type
-		// 2) Get the pointer type of that type
-		// 3) Cast address to the pointer type
-		// 4) Dereference address
-		// 5) Assign in_value to dereferenced address
-		*(std::remove_reference_t<decltype(in_value)>*)address = in_value;
-		return sizeof(decltype(in_value));
-	}
-	
-	// Copy in a fixed-length array of a single fixed-length datatype
-	unsigned int copyInArray(void *data, unsigned int position, 
-			auto* in_array, unsigned int length)	{
-		auto copy_len = length * sizeof(decltype(*in_array));
-		std::memcpy((uint8_t*)data+position, in_array, copy_len);
-		return copy_len;
-	}
-	
 	// Copy in a null terminated char array
 	unsigned int copyInCString(void *data, unsigned int position, const char* in) {
 		int length = 0;
@@ -66,20 +45,6 @@ namespace razor {
 		
 		length += copyInArray(data, position+length, &(packed_bools[0]), packed_bool_num);
 		return length;
-	}
-
-	//
-	
-	unsigned int copyOut(auto* out_value, void *data, unsigned int position) {
-		*out_value = *((std::remove_reference_t<decltype(out_value)>)((uint8_t*)data+position));
-		return sizeof(decltype(out_value));
-	}
-
-	unsigned int copyOutArray(auto* out_array, void *data, 
-			unsigned int position, unsigned int length) {
-		auto copy_len = length * sizeof(decltype(*out_array));
-		std::memcpy(out_array, (uint8_t*)data+position, copy_len);
-		return copy_len;
 	}
 
 	unsigned int copyOutCString(char* out, void *data, unsigned int position) {
