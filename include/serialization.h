@@ -9,8 +9,9 @@
 namespace razor {
 	inline constexpr auto VECTOR_MAX = 64;
 	
-	// Note: auto parameter functions must be in the header file due to the 
-	// calling translation unit compiling them.
+	// Note: auto parameter functions must be in the header file due to how 
+	// they must be compiled after a translation unit (cpp file) has declared
+	// the types that will be used.
 	
 	// Copy in a fixed-length datatype
 	inline unsigned int copyIn(void* data, unsigned int position, auto in_value) {

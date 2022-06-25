@@ -90,7 +90,7 @@ namespace razor {
 		}
 	}
 		
-	int Connection::hostAndPortToIP(IPaddress *ip, std::string host_and_port) {
+	int Connection::hostAndPortToIP(IPaddress *ip, const std::string& host_and_port) {
 		int colon_pos = host_and_port.find(":");
 		if(colon_pos == std::string::npos)
 			return -1;
@@ -114,12 +114,16 @@ namespace razor {
 		return ss.str();
 	}
 		
-	std::string Connection::getPacketUIDString(std::string hostAndPort, Packet* p) {
-		return hostAndPort.append(":").append(std::to_string(p->id));
+	std::string Connection::getPacketUIDString(const std::string &hostAndPort, Packet* p) {
+		std::stringstream ss;
+		ss << hostAndPort << ":" << std::to_string(p->id);
+		return ss.str();
 	}
 		
-	std::string Connection::getPacketUIDString(std::string hostAndPort, unsigned int id) {
-		return hostAndPort.append(":").append(std::to_string(id));
+	std::string Connection::getPacketUIDString(const std::string &hostAndPort, unsigned int id) {
+		std::stringstream ss;
+		ss << hostAndPort << ":" << std::to_string(id);
+		return ss.str();
 	}
 		
 	void Connection::freeUDPPacket(UDPpacket* udp_packet) {
@@ -135,7 +139,7 @@ namespace razor {
 	}
 		
 	// Must be called before sending/receiving packets
-	bool Connection::openSocket(unsigned short port, std::string remote=ANY_ADDRESS) {
+	bool Connection::openSocket(unsigned short port, const std::string &remote) {
 		this->port = port;
 		this->socket = SDLNet_UDP_Open(port);
 		this->remote_host_and_port = remote;
@@ -146,7 +150,7 @@ namespace razor {
 		SDLNet_UDP_Close(this->socket);
 	}
 		
-	int Connection::getChannel(std::string host_and_port) {
+	int Connection::getChannel(const std::string &host_and_port) {
 		if(host_and_port == ANY_ADDRESS)
 			return -1;
 		
@@ -168,7 +172,7 @@ namespace razor {
 		return result;
 	}
 		
-	void Connection::unbind(std::string host_and_port) {
+	void Connection::unbind(const std::string &host_and_port) {
 		if(this->socket == NULL)
 			return;
 		
@@ -193,7 +197,7 @@ namespace razor {
 		
 		// internal send
 	bool Connection::sendPacket(int channel, unsigned char multipart_total,
-			unsigned char multipart_index, std::string message_part) {
+			unsigned char multipart_index, const std::string &message_part) {
 		Packet p;
 		p.assignID();
 		
@@ -232,7 +236,7 @@ namespace razor {
 	}
 		
 	// returns whether the message was sent
-	bool Connection::send(std::string host_and_port, std::string message) {
+	bool Connection::send(const std::string &host_and_port, const std::string &message) {
 		if(this->socket == NULL)
 			return false;
 		
@@ -262,7 +266,7 @@ namespace razor {
 		return success;
 	}
 		
-	bool Connection::sendAll(std::string message) {
+	bool Connection::sendAll(const std::string &message) {
 		bool success = true;
 		for(auto p : this->channels) {
 			success = success && this->send(p.first, message);

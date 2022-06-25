@@ -71,21 +71,21 @@ namespace razor {
 		Connection();
 		~Connection();
 		
-		static int hostAndPortToIP(IPaddress *ip, std::string host_and_port);
+		static int hostAndPortToIP(IPaddress *ip, const std::string &host_and_port);
 		static std::string IPToHostAndPort(IPaddress* ip);
 		
 		// Must be called before sending/receiving packets
-		bool openSocket(unsigned short port, std::string remote);
+		bool openSocket(unsigned short port, const std::string &remote=ANY_ADDRESS);
 		
 		void closeSocket();
 		
-		int getChannel(std::string host_and_port);
-		void unbind(std::string host_and_port);
+		int getChannel(const std::string &host_and_port);
+		void unbind(const std::string &host_and_port);
 		void unbindAll();
 		
 		// returns whether the message was sent
-		bool send(std::string host_and_port, std::string message);
-		bool sendAll(std::string message);
+		bool send(const std::string &host_and_port, const std::string &message);
+		bool sendAll(const std::string &message);
 		
 		// returns if anything was recieved
 		bool receive(std::string* host_and_port, std::string* message);
@@ -94,9 +94,9 @@ namespace razor {
 		
 	private:
 		bool sendPacket(int channel, unsigned char multipart_total, 
-				unsigned char multipart_index, std::string message_part);
-		static std::string getPacketUIDString(std::string hostAndPort, Packet* p);
-		static std::string getPacketUIDString(std::string hostAndPort, unsigned int id);
+				unsigned char multipart_index, const std::string &message_part);
+		static std::string getPacketUIDString(const std::string &hostAndPort, Packet* p);
+		static std::string getPacketUIDString(const std::string &hostAndPort, unsigned int id);
 		static void freeUDPPacket(UDPpacket* udp_packet);
 		static bool multipartIsComplete(std::vector<DirectedMessage>* mp);
 	};
