@@ -12,7 +12,6 @@ namespace razor {
 		this->set_team_delay = 0;
 		this->daemon_host_and_port = "";
 		this->future_time = 0;
-		this->target_future_time = 0;
 		this->next_sync_tick = 0;
 		this->last_sync_tick = 0;
 		this->next_ping_time = 0;
@@ -39,7 +38,7 @@ namespace razor {
 		}
 	}
 	
-	unsigned long long Razor::calculateLocalTimeDifference() {
+	nanotimediff Razor::calculateLocalTimeDifference() {
 		if(this->time_delta_log.size() == 0)
 			return 0;
 		
@@ -52,18 +51,18 @@ namespace razor {
 		
 		
 		// get the max of the ping_log
-		long long max_ping = 0;
+		nanotimediff max_ping = 0;
 		for(int i=0; i<this->ping_log.size(); i++) {
-			unsigned long long ping = this->ping_log[i];
+			nanotime ping = this->ping_log[i];
 			if(ping > max_ping) {
 				max_ping = ping;
 			}
 		}
 		
 		// add a buffer of future time to account for ping spikes
-		unsigned long long future_time = (max_ping/2.0f) // 1-way travel time
-			* FUTURE_TIME_PING_MULTIPLIER // ping spike headroom
-			+ FUTURE_TIME_PING_FIXED_FUTURE; // fixed ping spike headroom
+		nanotime future_time = (max_ping/2.0f) // 1-way travel time
+			* FUTURE_TIME_PING_MULTIPLIER // ping spike multiplier
+			+ FUTURE_TIME_PING_FIXED; // fixed ping spike headroom
 		
 		//std::cout << "avg_td " << avg_td / NANOS_PER_MILLI;
 		//std::cout << " max_ping " << max_ping / NANOS_PER_MILLI;
@@ -96,21 +95,21 @@ namespace razor {
 		return pos;
 	}
 	
-	int Razor::serializePong(char* data, unsigned long long remote_timestamp, unsigned long long zero_time) {
+	int Razor::serializePong(char* data, nanotime remote_timestamp, nanotime zero_time) {
 		int pos = 0;
 		pos += copyIn(data, pos, remote_timestamp);
 		pos += copyIn(data, pos, zero_time);
 		return pos;
 	}
 	
-	int Razor::deserializePong(char* data, unsigned long long *start_timestamp, unsigned long long *zero_time) {
+	int Razor::deserializePong(char* data, nanotime *start_timestamp, nanotime *zero_time) {
 		int pos = 0;
 		pos += copyOut(start_timestamp, data, pos);
 		pos += copyOut(zero_time, data, pos);
 		return pos;
 	}
 	
-	int Razor::serializeCommand(char* data, int pos, unsigned long long tick_number, std::string* command) {
+	int Razor::serializeCommand(char* data, int pos, ticktype tick_number, std::string* command) {
 		if(command->length() > MAX_COMMAND_LENGTH) {
 			std::cout << "< WARNING: Command serialization over length: " << command->length() 
 					<< " > " << MAX_COMMAND_LENGTH << " [" << *command << "]" << std::endl;
@@ -121,7 +120,7 @@ namespace razor {
 		return len;
 	}
 	
-	int Razor::deserializeCommand(char* data, int pos, unsigned long long *tick_number, std::string *command) {
+	int Razor::deserializeCommand(char* data, int pos, ticktype *tick_number, std::string *command) {
 		int len = 0;
 		len += copyOut(tick_number, data, pos+len);
 		if(len > MAX_COMMAND_LENGTH) {
@@ -132,12 +131,12 @@ namespace razor {
 		return len;
 	}
 	
-	void Razor::queueOutgoingNetworkMessage(std::string dest, unsigned char type, std::string& message) {
+	void Razor::queueOutgoingNetworkMessage(const std::string &dest, unsigned char type, const std::string& message) {
 		NetworkMessage nm;
 		nm.origin_host_and_port = LOCAL;
 		nm.dest_host_and_port = dest;
 		// TODO: setup current frame number
-		nm.ticknumber = 0;//this->server->frame_number;
+		nm.ticknumber = 0;//this->server->tick_number;
 		nm.timestamp = razor::nanoNow();
 		nm.type = type;
 		nm.message = message;
@@ -203,7 +202,8 @@ namespace razor {
 	}
 	
 	// Pongs also return the requester's timestamp
-	void Razor::sendPong(std::string dest, unsigned long long remote_timestamp, unsigned long long zero_time) {
+	void Razor::sendPong(std::string dest, nanotime remote_timestamp) {
+		auto zero_time = this->local_zero_time;
 		char pong_data[16]; // two 8 byte long longs
 		serializePong(pong_data, remote_timestamp, zero_time);
 		std::string pong_str;
@@ -224,13 +224,15 @@ namespace razor {
 			dest, MESSAGE_DISCONNECT, empty);
 	}
 	
-	void Razor::sendSync(std::string dest, unsigned long long frame_number) {
+	void Razor::sendSync(std::string dest) {
+		auto tick_number = this->local_tick_number;
+		
 		// TODO: Get sync state
 		//this->server->serializeState(&state);
 		 std::string* state = NULL;
 		
 		int pos = 0;
-		pos += copyIn(send_buffer, pos, frame_number);
+		pos += copyIn(send_buffer, pos, tick_number);
 		pos += copyInString(send_buffer, pos, state);
 		
 		std::string message;
@@ -242,9 +244,10 @@ namespace razor {
 		std::cout << "< Sending full sync to " << dest << std::endl;
 	}
 	
-	void Razor::sendCommand(std::string& command, unsigned long long frame_number) {
+	void Razor::sendCommand(const std::string& command) {
+		auto tick_number = this->local_tick_number;
 		OutgoingCommand o;
-		o.tick_number = frame_number;
+		o.tick_number = tick_number;
 		o.command = command;
 		outgoing_commands.push_back(o);
 	}
@@ -261,7 +264,9 @@ namespace razor {
 		}
 	}
 	
-	void Razor::receivePong(NetworkMessage* nm, unsigned long long zero_time) {
+	void Razor::receivePong(NetworkMessage* nm) {
+		auto zero_time = this->local_zero_time;
+		
 		if(this->daemon) // deamons ignore pongs -- they have no need to synchronize
 					return;
 		
@@ -279,7 +284,7 @@ namespace razor {
 			this->time_delta_log.pop_front();
 		
 		// the ping is the round trip time from slave->daemon->slave
-		unsigned long long ping = end_timestamp - start_timestamp;
+		nanotime ping = end_timestamp - start_timestamp;
 		this->ping_log.push_back(ping);
 		
 		// time_delta is estimated difference between the two time systems' 
@@ -289,7 +294,7 @@ namespace razor {
 		// they should correspond roughly to the same absolute time, so
 		// the difference will be a rough time delta.
 		// over time, the log will average out a reasonable time delta
-		long long time_delta = (start_timestamp + ping/2 - zero_time) -
+		nanotimediff time_delta = (start_timestamp + ping/2 - zero_time) -
 									(bounce_timestamp - this->daemon_zero_time);
 		this->time_delta_log.push_back(time_delta);
 		
@@ -301,12 +306,12 @@ namespace razor {
 		// if this is the first ping, use the ping's data to initialize the future ticks
 		if(this->first_ping) {
 			this->future_time = this->calculateLocalTimeDifference();
-			this->target_future_time = this->future_time;
 			this->first_ping = false;
 		}
 	}
 	
-	void Razor::receiveCommands(NetworkMessage* nm, unsigned long long frame_number) {
+	void Razor::receiveCommands(NetworkMessage* nm) {
+		auto tick_number = this->local_tick_number;
 		unsigned short commands_number;
 		const char* buffer = nm->message.c_str();
 		int pos = 0;
@@ -316,21 +321,21 @@ namespace razor {
 			return;
 		}
 		for(int i=0; i<commands_number; i++) {
-			unsigned long long tick_number;
+			ticktype tick_number;
 			std::string command;
 			pos += deserializeCommand((char*)buffer, pos, &tick_number, &command);
 			if(command.size() > MAX_COMMAND_LENGTH) {
 				std::cout << "< Received command over size limit (" << command.size() << ")" << std::endl;
 				return;
 			}
-			if(this->daemon && tick_number < frame_number) {
+			if(this->daemon && tick_number < tick_number) {
 				std::cout << "< Received command in the past, discarding (received " << tick_number
-							<< " vs now " << frame_number << ")" << std::endl;
+							<< " vs now " << tick_number << ")" << std::endl;
 				return;
 			}
-			if(this->daemon && tick_number - frame_number > COMMAND_MAX_FUTURE) {
+			if(this->daemon && tick_number - tick_number > COMMAND_MAX_FUTURE) {
 				std::cout << "< Received command too far in the future (" << tick_number << ") for now "
-							<< "(" << frame_number << ")" << std::endl;
+							<< "(" << tick_number << ")" << std::endl;
 				return;
 			}
 			
@@ -338,8 +343,8 @@ namespace razor {
 			auto tick_and_command = std::to_string(tick_number).append(" ").append(command);
 			
 			if(this->daemon) {
-				//std::cout << "< Received command @ " << this->server->frame_number << " : " << tick_and_command << std::endl;
-				sendCommand(command, tick_number);
+				//std::cout << "< Received command @ " << this->server->tick_number << " : " << tick_and_command << std::endl;
+				sendCommand(command);
 			} else {
 				// Note: it is important that this comes before the logcommand below because it must check
 				//		to see if this is an existing command.
@@ -363,7 +368,7 @@ namespace razor {
 		// Set the server's tick time to the sync message's
 		// load in the gamedata sync
 		// Set the server's local_time_difference to the correct amount of future_ticks
-		unsigned long long daemon_tick_number;
+		ticktype daemon_tick_number;
 		std::string state;
 		
 		char* data = (char*)nm->message.c_str();
@@ -372,9 +377,9 @@ namespace razor {
 		pos += copyOut(&daemon_tick_number, data, pos);
 		pos += copyOutString(&state, data, pos);
 		
-		//std::cout << "< Sync daemon tick: " << daemon_tick_number << ". Local tick: " << this->server->frame_number << std::endl;
+		//std::cout << "< Sync daemon tick: " << daemon_tick_number << ". Local tick: " << this->server->tick_number << std::endl;
 		
-		unsigned long long local_time_difference = this->future_time;
+		nanotimediff local_time_difference = this->future_time;
 		
 		if(this->first_sync) {
 			this->first_sync = false;
@@ -399,16 +404,19 @@ namespace razor {
 			/*auto ts = (TrackerStates*)this->server->getHeuristic(HEURISTIC_TRACKER_STATES);
 			if(ts != NULL && ts->replay_runner != NULL) {
 				// replay from the daemon tick's number to our current frame.
-				std::cout << "< Queuing background netsync replay. Server0 frame: " << this->server->frame_number <<
+				std::cout << "< Queuing background netsync replay. Server0 frame: " << this->server->tick_number <<
 					" Daemon frame: " << daemon_tick_number << std::endl;
-				ts->replay_runner->startNewReplay(&state, daemon_tick_number, this->server->frame_number, 
+				ts->replay_runner->startNewReplay(&state, daemon_tick_number, this->server->tick_number, 
 					local_time_difference, this->server->zero_time, 
 					true); // priority = true
 			}/**/
 		}
 	}
 	
-	void Razor::receiveMessages(unsigned long long frame_number, unsigned long long zero_time) {
+	void Razor::receiveMessages() {
+		auto tick_number = this->local_tick_number;
+		auto zero_time = this->local_zero_time;
+		
 		std::string host_and_port, message;
 		
 		while(this->connection.receive(&host_and_port, &message)) {
@@ -421,23 +429,23 @@ namespace razor {
 				
 				if(nm.type == MESSAGE_COMMAND) {
 					//std::cout << "< Received command" << std::endl;
-					this->receiveCommands(&nm, frame_number);
+					this->receiveCommands(&nm);
 				} else if(nm.type == MESSAGE_SYNC) {
 					std::cout << "< Received sync" << std::endl;
 					this->receiveSync(&nm);
 				} else if(nm.type == MESSAGE_PONG) {
 					std::cout << "< Received pong" << std::endl;
-					this->receivePong(&nm, zero_time);
+					this->receivePong(&nm);
 				} else if(nm.type == MESSAGE_REQUEST_FULL) {
 					if(!this->daemon) // slaves should ignore sync requests
 						continue;
-					std::cout << "< Received request full" << std::endl;
-					this->sendPong(nm.origin_host_and_port, nm.timestamp, zero_time);
-					this->sendSync(nm.origin_host_and_port, frame_number);
+					std::cout << "< Received request full sync" << std::endl;
+					this->sendPong(nm.origin_host_and_port, nm.timestamp);
+					this->sendSync(nm.origin_host_and_port);
 				} else if(nm.type == MESSAGE_PING) {
 					if(!this->daemon) // slaves should ignore ping requests
 						continue;
-					this->sendPong(nm.origin_host_and_port, nm.timestamp, zero_time);
+					this->sendPong(nm.origin_host_and_port, nm.timestamp);
 				} else if(nm.type == MESSAGE_DISCONNECT) {
 					// TODO
 				} else {
@@ -460,7 +468,7 @@ namespace razor {
 		std::swap(this->outgoing_commands, empty);
 	}
 	
-	void Razor::sendMessages(unsigned long long frame_number) {
+	void Razor::sendMessages(ticktype tick_number) {
 		// if a slave with no daemon, do not send.
 		if(!this->daemon && !this->slaved) {
 			this->clearSendQueue();
@@ -472,8 +480,9 @@ namespace razor {
 			this->clearOutgoingCommands();
 		}
 		
-		if(this->next_command_time < frame_number) {
-			this->next_command_time = frame_number + COMMAND_DELAY;
+		// wait for the next command interval to send a batch of commands
+		if(this->next_command_time < tick_number) {
+			this->next_command_time = tick_number + COMMAND_DELAY;
 			this->queueOutgoingCommands();
 		}
 		
@@ -498,29 +507,23 @@ namespace razor {
 	}
 	
 	void Razor::updateFutureTime() {
-		this->target_future_time = this->calculateLocalTimeDifference();
-		this->future_time = this->target_future_time;
-		
-		//(this->target_future_time - this->future_time) 
-		//* FUTURE_TIME_TRACK_TARGET + this->future_time;
-		//std::cout << "target_future_time " << this->target_future_time / NANOS_PER_MILLI << std::endl;
-		//std::cout << "future_time " << this->future_time / NANOS_PER_MILLI  << std::endl;
-		
+		this->future_time = this->calculateLocalTimeDifference();
 		// TODO: set local time difference
 		//this->server->setLocalTimeDifference(this->future_time);
 		
 		// TODO: MAX_FUTURE_TIME_HIGH_PING
 	}
 	
-	void Razor::daemonTick(unsigned long long frame_number) {
-		if(this->next_sync_tick <= frame_number) {
-			this->next_sync_tick = frame_number + SYNC_DELAY;
-			this->sendSync(BROADCAST, frame_number); //this->last_sync_tick); delta syncs need work
-			this->last_sync_tick = frame_number;
+	void Razor::daemonTick() {
+		auto tick_number = this->local_tick_number;
+		if(this->next_sync_tick <= tick_number) {
+			this->next_sync_tick = tick_number + SYNC_DELAY;
+			this->sendSync(BROADCAST); //this->last_sync_tick); delta syncs need work
+			this->last_sync_tick = tick_number;
 		}
 	}
 	
-	void Razor::slaveTick(unsigned long long frame_number) {
+	void Razor::slaveTick(ticktype tick_number) {
 		this->connectIfNeeded();
 		this->updateFutureTime();
 		
@@ -549,16 +552,19 @@ namespace razor {
 		}
 	}
 	
-	void Razor::tick(unsigned long long frame_number, unsigned long long zero_time) {
-		this->receiveMessages(frame_number, zero_time);
+	void Razor::tick(unsigned long long tick_number, unsigned long long zero_time) {
+		this->local_tick_number = tick_number;
+		this->local_zero_time = zero_time;
+		
+		this->receiveMessages();
 		
 		if(this->daemon) {
-			this->daemonTick(frame_number);
+			this->daemonTick();
 		} else {
-			this->slaveTick(frame_number);
+			this->slaveTick(tick_number);
 		}
 		
-		this->sendMessages(frame_number);
+		this->sendMessages(tick_number);
 	}
 	
 	void Razor::setPort(int port) {
@@ -584,39 +590,15 @@ namespace razor {
 		}
 	}
 	
-	void Razor::setDaemonAddress(std::string &daemon_host_and_port) {
+	void Razor::setDaemonAddress(const std::string &daemon_host_and_port) {
 		this->daemon_host_and_port = daemon_host_and_port;
 	}
 	
-	// TODO: Replace console commands with functions
-	/*bool console(std::vector<std::string> parts, bool broadcast) {
-		else if(razor::comGet(parts,0) == "daemon") {
-			this->daemon = true;
-			std::cout << "< Activating daemon mode" << std::endl;
-			return true;
-		} else if(razor::comGet(parts,0) == "lognetworking") {
-			this->connection.enableLogging();
-			std::cout << "< Enabling network logging" << std::endl;
-			return true;
-		} else if(razor::comGet(parts,0) == "daemonaddr") {
-			this->daemon = false;
-			this->daemon_host_and_port = razor::comGet(parts,1);
-			std::cout << "< Connecting to daemon at " << this->daemon_host_and_port << std::endl;
-			return true;
-		} else {		
-			// capture broadcast commands for synchronization
-			// if the command doesn't exist, it is from local, and we should queue it for sending
-			if(this->daemon_host_and_port != "" && broadcast) {
-				unsigned long long now_tick = this->server->frame_number;
-				
-				std::stringstream ss;
-				for(int i=0; i<parts.size(); i++) {
-					ss << parts[i] << " ";
-				}
-				std::string command = ss.str();
-				this->sendCommand(command, now_tick);
-			}
-		}
-		return false;
-	}*/
+	void Razor::setLogNetworking() {
+		this->connection.enableLogging();
+	}
+	
+	void Razor::command(const std::string &command_data) {
+		this->sendCommand(command_data);
+	}
 };

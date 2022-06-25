@@ -48,6 +48,8 @@ If the daemon or a slave detects no packets for TIMEOUT time, it will disconnect
 */
 
 namespace razor {
+	typedef unsigned long long int ticktype;
+	typedef long long int nanotimediff;
 	
 	// Amount of time after connecting to wait before adding the player. This allows local time to be synchronized.
 	inline constexpr nanotime CREATE_PLAYER_DELAY = 500 * NANOS_PER_MILLI;
@@ -63,7 +65,7 @@ namespace razor {
 
 	// Fixed amount of future time to add on top of multiplier. This is to account for other player's pings when
 	// the server sends your command to them.
-	inline constexpr nanotime FUTURE_TIME_PING_FIXED_FUTURE = 30 * NANOS_PER_MILLI;
+	inline constexpr nanotime FUTURE_TIME_PING_FIXED = 30 * NANOS_PER_MILLI;
 
 	// Maximum value of future time before triggering high-ping self-disconnect
 	inline constexpr nanotime MAX_FUTURE_TIME_HIGH_PING = 1000 * NANOS_PER_MILLI;
@@ -116,13 +118,13 @@ namespace razor {
 			unsigned char type;
 			std::string origin_host_and_port;
 			std::string dest_host_and_port; // if == to BROADCAST, will be sent to all
-			unsigned long long timestamp; // timestamps are absolute to the epoch
-			unsigned long long ticknumber; // ticknumbers are relative / dynamic
+			nanotime timestamp; // timestamps are absolute to the epoch
+			ticktype ticknumber; // ticknumbers are relative / dynamic
 			std::string message;
 		};
 		
 		struct OutgoingCommand {
-			unsigned long long tick_number;
+			ticktype tick_number;
 			std::string command;
 		};
 		
@@ -130,10 +132,10 @@ namespace razor {
 		std::deque<NetworkMessage> send_queue;
 		
 		// for slaves only, the last PING_LOG_LENGTH of pings
-		std::deque<long long> ping_log;
+		std::deque<nanotime> ping_log;
 		
 		// for slaves only, the last PING_LOG_LENGTH of time_deltas
-		std::deque<long long> time_delta_log;
+		std::deque<nanotimediff> time_delta_log;
 		
 		bool daemon, slaved;
 		std::string daemon_host_and_port;
@@ -141,36 +143,39 @@ namespace razor {
 		std::deque<OutgoingCommand> outgoing_commands;
 		
 		// ping in nanoseconds. Generated from a moving average of ping_log.
-		long long ping;
+		nanotime ping;
 		
 		// zero time of the daemon
-		unsigned long long daemon_zero_time;
+		nanotime daemon_zero_time;
 		
 		// difference between local zero_time and daemon zero_time
-		long long time_delta_to_daemon;
+		nanotimediff time_delta_to_daemon;
 		
 		// number of nanoseconds into the future the player will play at
-		long long future_time;
-		
-		// the target future time that will be incremented toward TODO
-		long long target_future_time;
+		nanotimediff future_time;
 		
 		bool first_ping, first_sync, create_player, set_team;
-		unsigned long long create_player_delay;
-		unsigned long long set_team_delay;
+		ticktype create_player_delay;
+		ticktype set_team_delay;
 		
 		// used for working memory for building packets
 		char* send_buffer;
 		char* packed_command_buffer;
 		
 		// Sync timer
-		unsigned long long next_sync_tick, last_sync_tick;
+		ticktype next_sync_tick, last_sync_tick;
 		
 		// Ping timer
-		unsigned long long next_ping_time;
+		nanotime next_ping_time;
 		
 		// Command send delay timer
-		unsigned long long next_command_time;
+		nanotime next_command_time;
+		
+		// The local state's current tick (as of last tick call)
+		ticktype local_tick_number;
+		
+		// The local state's current zero_time (as of last tick call)
+		nanotime local_zero_time;
 		
 		bool destroyed;
 		
@@ -180,39 +185,39 @@ namespace razor {
 		
 		void destroy();
 		
-		unsigned long long calculateLocalTimeDifference();
+		nanotimediff calculateLocalTimeDifference();
 		
 		// Serialize/deserialize different message types
 		// returns number of bytes copied
 		int serializeMessage(void* data, NetworkMessage* in);
 		int deserializeMessage(NetworkMessage* out, void* data);
 		
-		int serializePong(char* data, unsigned long long remote_timestamp, unsigned long long zero_time);
-		int deserializePong(char* data, unsigned long long *start_timestamp, unsigned long long *zero_time);
+		int serializePong(char* data, nanotime remote_timestamp, nanotime zero_time);
+		int deserializePong(char* data, nanotime *start_timestamp, nanotime *zero_time);
 		
-		int serializeCommand(char* data, int pos, unsigned long long tick_number, std::string* command);
-		int deserializeCommand(char* data, int pos, unsigned long long *tick_number, std::string *command);
+		int serializeCommand(char* data, int pos, ticktype tick_number, std::string* command);
+		int deserializeCommand(char* data, int pos, ticktype *tick_number, std::string *command);
 		
 		// Queuing of new messages, used by sends
-		void queueOutgoingNetworkMessage(std::string dest, unsigned char type, std::string& message);
+		void queueOutgoingNetworkMessage(const std::string &dest, unsigned char type, const std::string& message);
 		void queueOutgoingCommands();
 		
 		// Send message types
 		void sendRequestFullSync();
-		void sendPong(std::string dest, unsigned long long remote_timestamp, unsigned long long zero_time);
+		void sendPong(std::string dest, nanotime remote_timestamp);
 		void sendPing(std::string dest);
 		void sendDisconnect(std::string dest);
-		void sendSync(std::string dest, unsigned long long frame_number);
-		void sendCommand(std::string& command, unsigned long long frame_number);
+		void sendSync(std::string dest);
+		void sendCommand(const std::string& command);
 		
 		// Receive message types
-		void receivePong(NetworkMessage* nm, unsigned long long zero_time);
-		void receiveCommands(NetworkMessage* nm, unsigned long long frame_number);
+		void receivePong(NetworkMessage* nm);
+		void receiveCommands(NetworkMessage* nm);
 		void receiveSync(NetworkMessage* nm);
 		
 		// Handle sending and receiving of messages
-		void sendMessages(unsigned long long frame_number);
-		void receiveMessages(unsigned long long frame_number, unsigned long long zero_time);
+		void sendMessages(ticktype tick_number);
+		void receiveMessages();
 		
 		// Internal processes
 		void connectIfNeeded();
@@ -221,13 +226,18 @@ namespace razor {
 		void updateFutureTime();
 		
 		// Daemon/slave tick functions
-		void daemonTick(unsigned long long frame_number);
-		void slaveTick(unsigned long long frame_number);
+		void daemonTick();
+		void slaveTick(ticktype tick_number);
 		
-		// Public interface
-		void tick(unsigned long long frame_number, unsigned long long zero_time);
+		// Public configuration
 		void setPort(int port);
 		void setDaemon(bool is_daemon=true);
-		void setDaemonAddress(std::string &daemon_host_and_port);
+		void setDaemonAddress(const std::string &daemon_host_and_port);
+		void setLogNetworking();
+		
+		// Public live functions
+		// Note: tick must be called first each frame
+		void tick(ticktype tick_number, nanotime zero_time);
+		void command(const std::string &command_data);
 	};
 };
