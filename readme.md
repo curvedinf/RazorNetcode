@@ -86,7 +86,7 @@ good example is a death animation.
 # Compiling Razor
 
 Dependencies:
-* g++-10 or higher
+* C++20 compiler (g++-12 or higher)
 * make
 * pthread
 * SDL2

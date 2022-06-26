@@ -76,7 +76,7 @@ namespace razor {
 
 	unsigned int copyOutBV(bool* out, unsigned char* bool_num, void *data, unsigned int position) {
 		int length = 0;
-		length += copyOut((char*)bool_num, data, position);
+		length += copyOut(bool_num, data, position);
 		// TODO check sanity of bool num size
 		
 		char packed_bools[8];
@@ -109,18 +109,18 @@ namespace razor {
 		float fin = 19.5;
 		double din = 20.5;
 		std::string strin(R"(
-			But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain 
-			was born and I will give you a complete account of the system, and expound the actual teachings 
-			of the great explorer of the truth, the master-builder of human happiness. No one rejects, 
-			dislikes, or avoids pleasure itself, because it is pleasure, but because those who do not know 
-			how to pursue pleasure rationally encounter consequences that are extremely painful. Nor again 
-			is there anyone who loves or pursues or desires to obtain pain of itself, because it is pain, 
-			but because occasionally circumstances occur in which toil and pain can procure him some great 
-			pleasure. To take a trivial example, which of us ever undertakes laborious physical exercise, 
-			except to obtain some advantage from it? But who has any right to find fault with a man who 
-			chooses to enjoy a pleasure that has no annoying consequences, or one who avoids a pain that 
-			produces no resultant pleasure?
-		)");
+But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain 
+was born and I will give you a complete account of the system, and expound the actual teachings 
+of the great explorer of the truth, the master-builder of human happiness. No one rejects, 
+dislikes, or avoids pleasure itself, because it is pleasure, but because those who do not know 
+how to pursue pleasure rationally encounter consequences that are extremely painful. Nor again 
+is there anyone who loves or pursues or desires to obtain pain of itself, because it is pain, 
+but because occasionally circumstances occur in which toil and pain can procure him some great 
+pleasure. To take a trivial example, which of us ever undertakes laborious physical exercise, 
+except to obtain some advantage from it? But who has any right to find fault with a man who 
+chooses to enjoy a pleasure that has no annoying consequences, or one who avoids a pain that 
+produces no resultant pleasure?
+)");
 		bool bvin[9]; // vector of 9 bools
 		bvin[0] = true;
 		bvin[1] = true;
@@ -216,6 +216,8 @@ namespace razor {
 		out = copyOutString(&strout, data, p);
 		if(out != strin.size() + 4 || !(strout == strin)) return 109;
 		p += out;
+		
+		std::cout << strout << std::endl;
 		
 		out = copyOut(&bout, data, p);
 		if(out != 1 || bout != bin) return 110;
