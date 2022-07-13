@@ -7,6 +7,15 @@ namespace razor {
 				).count();
 	}
 	
+	void sleep(millitime time) {
+		SDL_Delay(time);
+	}
+	
+	void busyWait(nanotime time) {
+		while(nanoNow() < time) {
+		}
+	}
+	
 	std::string urlEncode(std::string& s) {
 		CURL* c = curl_easy_init();
 		char* out_raw = curl_easy_escape(c, s.c_str(), s.size());

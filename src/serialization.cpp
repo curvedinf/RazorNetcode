@@ -21,10 +21,10 @@ namespace razor {
 	unsigned int copyInBV(void *data, unsigned int position, bool* in, unsigned char bool_num) {
 		int length = 0;
 		
-		if(bool_num > VECTOR_MAX) {
+		if(bool_num > BOOL_VECTOR_MAX) {
 			std::stringstream ss;
 			ss << "Bool vector exceeded maximum size during serialization (" <<
-				bool_num << ") out of range (" << VECTOR_MAX << ")";
+				bool_num << ") out of range (" << BOOL_VECTOR_MAX << ")";
 			throw std::range_error(ss.str());
 		}
 		length += copyIn(data, position, bool_num);
@@ -77,7 +77,13 @@ namespace razor {
 	unsigned int copyOutBV(bool* out, unsigned char* bool_num, void *data, unsigned int position) {
 		int length = 0;
 		length += copyOut(bool_num, data, position);
-		// TODO check sanity of bool num size
+		
+		if(bool_num > BOOL_VECTOR_MAX) {
+			std::stringstream ss;
+			ss << "Bool vector exceeded maximum size during serialization (" <<
+				bool_num << ") out of range (" << BOOL_VECTOR_MAX << ")";
+			throw std::range_error(ss.str());
+		}
 		
 		char packed_bools[8];
 		memset(packed_bools, 0, 8);
@@ -216,8 +222,6 @@ produces no resultant pleasure?
 		out = copyOutString(&strout, data, p);
 		if(out != strin.size() + 4 || !(strout == strin)) return 109;
 		p += out;
-		
-		std::cout << strout << std::endl;
 		
 		out = copyOut(&bout, data, p);
 		if(out != 1 || bout != bin) return 110;

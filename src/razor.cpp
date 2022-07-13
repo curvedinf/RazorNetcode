@@ -510,8 +510,6 @@ namespace razor {
 		this->future_time = this->calculateLocalTimeDifference();
 		// TODO: set local time difference
 		//this->server->setLocalTimeDifference(this->future_time);
-		
-		// TODO: MAX_FUTURE_TIME_HIGH_PING
 	}
 	
 	void Razor::daemonTick() {
@@ -601,4 +599,59 @@ namespace razor {
 	void Razor::command(const std::string &command_data) {
 		this->sendCommand(command_data);
 	}
+	
+	int razorUnitTest() {
+		std::cout << "Creating server..." << std::endl;
+		auto s = new Razor();
+		s->setPort(12320);
+		s->setDaemon();
+		
+		std::cout << "Creating client..." << std::endl;
+		auto c = new Razor();
+		c->setPort(12321);
+		c->setDaemonAddress("127.0.0.1:12320");
+		
+		// Server warmup frames
+		int sbt = 100;
+		for(int i=0; i <= sbt; i++) {
+			s->tick(i, nanoNow());
+		}
+		
+		nanotimediff error = -1555 * NANOS_PER_MILLI;
+		
+		
+		// Frame 1
+		int frame = 1;
+		std::cout << "@ Frame" << frame << std::endl;
+		s->tick(sbt+frame, nanoNow());
+		// c sends request full sync
+		c->tick(frame, nanoNow()+error);
+		sleep(100);
+		
+		// Frame 2
+		frame = 2;
+		std::cout << "@ Frame" << frame << std::endl;
+		c->tick(frame, nanoNow()+error);
+		// s receives request full sync, responds with sync and pong
+		s->tick(sbt+frame, nanoNow());
+		sleep(100);
+		
+		// Frame 3
+		frame = 3;
+		std::cout << "@ Frame" << frame << std::endl;
+		s->tick(sbt+frame, nanoNow());
+		// c receives full sync and pong, updates everything
+		c->tick(frame, nanoNow()+error);
+		sleep(100);
+		
+		// Check C's state versus S's
+		// Check C's future time
+		
+		
+		delete s;
+		delete c;
+		
+		return 0;
+	}
 };
+

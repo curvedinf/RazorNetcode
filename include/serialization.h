@@ -8,7 +8,7 @@
 #include <cstddef>
 
 namespace razor {
-	inline constexpr auto VECTOR_MAX = 64;
+	inline constexpr auto BOOL_VECTOR_MAX = 64;
 	
 	// Note: template functions must be in the header file due to how 
 	// they must be compiled after a translation unit (cpp file) has declared
@@ -29,6 +29,7 @@ namespace razor {
 		std::memcpy(address, in_array, copy_len);
 		return copy_len;
 	}
+	
 	unsigned int copyInCString(void *data, unsigned int position, const char* in);
 	unsigned int copyInString(void *data, unsigned int position, std::string* in);
 	unsigned int copyInBV(void *data, unsigned int position, bool* in, unsigned char bool_num);
@@ -46,6 +47,7 @@ namespace razor {
 		std::memcpy(out_array, address, copy_len);
 		return copy_len;
 	}
+	
 	unsigned int copyOutCString(char* out, void *data, unsigned int position);
 	unsigned int copyOutString(std::string* out, void *data, unsigned int position);
 	unsigned int copyOutBV(bool* out, unsigned char* bool_num, void *data, unsigned int position);

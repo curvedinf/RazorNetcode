@@ -235,9 +235,36 @@ namespace razor {
 		void setDaemonAddress(const std::string &daemon_host_and_port);
 		void setLogNetworking();
 		
+		// Public callbacks setters
+		void setCallbackGetStateData(
+			void (*get_state_data)(std::string*, ticktype, nanotimediff)
+		);
+		void setCallbackSetStateData(
+			void (*set_state_data)(std::string*)
+		);
+		void setCallbackGetTickNumber(
+			ticktype (*get_tick_number)()
+		);
+		void setCallbackSetTickNumber(
+			void (*set_tick_number)(ticktype)
+		);
+		void setCallbackGetLocalTimeDifference(
+			nanotimediff (*get_local_time_difference)()
+		);
+		void setCallbackSetLocalTimeDifference(
+			void (*set_local_time_difference)(nanotimediff)
+		);
+		void setCallbackBeginReplay
+		
+		ts->replay_runner->startNewReplay(&state, daemon_tick_number, this->server->tick_number, 
+					local_time_difference, this->server->zero_time, 
+					true)
+		
 		// Public live functions
 		// Note: tick must be called first each frame
 		void tick(ticktype tick_number, nanotime zero_time);
 		void command(const std::string &command_data);
 	};
+	
+	int razorUnitTest();
 };
