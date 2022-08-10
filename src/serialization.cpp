@@ -78,7 +78,7 @@ namespace razor {
 		int length = 0;
 		length += copyOut(bool_num, data, position);
 		
-		if(bool_num > BOOL_VECTOR_MAX) {
+		if(*bool_num > BOOL_VECTOR_MAX) {
 			std::stringstream ss;
 			ss << "Bool vector exceeded maximum size during serialization (" <<
 				bool_num << ") out of range (" << BOOL_VECTOR_MAX << ")";

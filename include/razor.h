@@ -236,29 +236,42 @@ namespace razor {
 		void setLogNetworking();
 		
 		// Public callbacks setters
-		void setCallbackGetStateData(
-			void (*get_state_data)(std::string*, ticktype, nanotimediff)
-		);
 		void setCallbackSetStateData(
-			void (*set_state_data)(std::string*)
+			void (*set_state_data_func)(
+				std::string*, // state 
+				ticktype, // daemon tick number
+				nanotimediff // local time difference
+			)
+		);
+		void setCallbackGetStateData(
+			void (*get_state_data_func)(
+				std::string* // state
+			)
 		);
 		void setCallbackGetTickNumber(
-			ticktype (*get_tick_number)()
+			// returns local tick number
+			ticktype (*get_tick_number_func)()
 		);
 		void setCallbackSetTickNumber(
-			void (*set_tick_number)(ticktype)
+			void (*set_tick_number_func)(
+				ticktype // tick number
+			)
 		);
 		void setCallbackGetLocalTimeDifference(
-			nanotimediff (*get_local_time_difference)()
+			// returns local time difference
+			nanotimediff (*get_local_time_difference_func)()
 		);
 		void setCallbackSetLocalTimeDifference(
-			void (*set_local_time_difference)(nanotimediff)
+			void (*set_local_time_difference_func)(
+				nanotimediff // local time difference
+			)
 		);
-		void setCallbackBeginReplay
-		
-		ts->replay_runner->startNewReplay(&state, daemon_tick_number, this->server->tick_number, 
-					local_time_difference, this->server->zero_time, 
-					true)
+		void setCallbackRewindState(
+			void (*rewind_state_func)(
+				std::string*, // daemon state
+				ticktype // daemon tick
+			)
+		);
 		
 		// Public live functions
 		// Note: tick must be called first each frame

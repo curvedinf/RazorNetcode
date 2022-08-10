@@ -229,7 +229,7 @@ namespace razor {
 		
 		// TODO: Get sync state
 		//this->server->serializeState(&state);
-		 std::string* state = NULL;
+		std::string* state = NULL;
 		
 		int pos = 0;
 		pos += copyIn(send_buffer, pos, tick_number);
