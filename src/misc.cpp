@@ -27,7 +27,7 @@ namespace razor {
 	
 	std::string urlDecode(std::string& s) {
 		CURL* c = curl_easy_init();
-		char* out_raw = curl_easy_unescape(c, s.c_str(), s.size(), NULL);
+		char* out_raw = curl_easy_unescape(c, s.c_str(), s.size(), nullptr);
 		std::string out(out_raw);
 		curl_free(out_raw);
 		curl_easy_cleanup(c);

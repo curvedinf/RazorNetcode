@@ -6,7 +6,7 @@ HEADER_FILES = $(wildcard src/*.h)
 OBJ_FILES := $(patsubst src/%.cpp, obj/%.o, $(SRC_FILES))
 D_FILES := $(patsubst src/%.cpp, obj/%.d, $(SRC_FILES))
 
-CC = g++-10
+CC = g++-12
 AR = ar
 
 GITCOMMIT = $(shell git log -1 --pretty=format:"%H")
@@ -18,16 +18,13 @@ LINKER_FLAGS = -lpthread -lSDL2 -lSDL2_net -lcurl
 
 ifeq ($(OS),Windows_NT)
 	CC = g++
-#	COMPILER_FLAGS_RELEASE += 
 	LINKER_FLAGS += -lmsvcrt -mwindows
-else
-#	LINKER_FLAGS += -lGL -lGLEW -lGLU -ldl -lsteam_api
 endif
 
 obj/%.o: src/%.cpp
 	$(CC) $(COMPILER_FLAGS) $(COMPILER_FLAGS_DEBUG) -c -o $@ $<
 
-$(LIB_NAME): $(OBJ_FILES)
+$(LIB_NAME): $(OBJ_FILES) $(HEADER_FILES)
 	$(AR) rcs $@ $^
 
 clean :
@@ -41,7 +38,7 @@ native: COMPILER_FLAGS_DEBUG =
 
 native release: $(LIB_NAME)
 
-test: test/main.cpp
+test: test/main.cpp $(OBJ_FILES) $(HEADER_FILES)
 	$(CC) $(COMPILER_FLAGS) $(COMPILER_FLAGS_DEBUG) -o $(TEST_EXE) $< ./librazor.a $(LINKER_FLAGS) -lSDL2main
 
 # this has to do with -MMD and generates a depedency graph for objects

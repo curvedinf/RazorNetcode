@@ -2,6 +2,7 @@
 #include <deque>
 #include <string>
 #include <iostream>
+#include <stdexcept>
 
 #include "networking.h"
 
@@ -178,6 +179,9 @@ namespace razor {
 		nanotime local_zero_time;
 		
 		bool destroyed;
+        
+        // Callback functions
+        void (*get_state_data_func)(std::string*); 
 		
 		Razor();
 		
@@ -235,38 +239,38 @@ namespace razor {
 		void setDaemonAddress(const std::string &daemon_host_and_port);
 		void setLogNetworking();
 		
-		// Public callbacks setters
-		void setCallbackSetStateData(
+		// Public callback registration functions
+		void registerCallbackSetStateData(
 			void (*set_state_data_func)(
 				std::string*, // state 
 				ticktype, // daemon tick number
 				nanotimediff // local time difference
 			)
 		);
-		void setCallbackGetStateData(
+		void registerCallbackGetStateData(
 			void (*get_state_data_func)(
 				std::string* // state
 			)
 		);
-		void setCallbackGetTickNumber(
+		void registerCallbackGetTickNumber(
 			// returns local tick number
 			ticktype (*get_tick_number_func)()
 		);
-		void setCallbackSetTickNumber(
+		void registerCallbackSetTickNumber(
 			void (*set_tick_number_func)(
 				ticktype // tick number
 			)
 		);
-		void setCallbackGetLocalTimeDifference(
+		void registerCallbackGetLocalTimeDifference(
 			// returns local time difference
 			nanotimediff (*get_local_time_difference_func)()
 		);
-		void setCallbackSetLocalTimeDifference(
+		void registerCallbackSetLocalTimeDifference(
 			void (*set_local_time_difference_func)(
 				nanotimediff // local time difference
 			)
 		);
-		void setCallbackRewindState(
+		void registerCallbackRewindState(
 			void (*rewind_state_func)(
 				std::string*, // daemon state
 				ticktype // daemon tick

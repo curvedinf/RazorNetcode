@@ -78,7 +78,7 @@ namespace razor {
 	}
 
 	Connection::Connection() {
-		this->log_file = NULL;
+		this->log_file = nullptr;
 		this->next_channel = 1;
 		this->remote_host_and_port = ANY_ADDRESS;
 	}
@@ -143,7 +143,7 @@ namespace razor {
 		this->port = port;
 		this->socket = SDLNet_UDP_Open(port);
 		this->remote_host_and_port = remote;
-		return this->socket != NULL;
+		return this->socket != nullptr;
 	}
 		
 	void Connection::closeSocket() {
@@ -173,7 +173,7 @@ namespace razor {
 	}
 		
 	void Connection::unbind(const std::string &host_and_port) {
-		if(this->socket == NULL)
+		if(this->socket == nullptr)
 			return;
 		
 		auto it = this->channels.find(host_and_port);
@@ -184,7 +184,7 @@ namespace razor {
 	}
 		
 	void Connection::unbindAll() {
-		if(this->socket == NULL)
+		if(this->socket == nullptr)
 			return;
 		
 		auto it = this->channels.begin();
@@ -237,7 +237,7 @@ namespace razor {
 		
 	// returns whether the message was sent
 	bool Connection::send(const std::string &host_and_port, const std::string &message) {
-		if(this->socket == NULL)
+		if(this->socket == nullptr)
 			return false;
 		
 		int channel = this->getChannel(host_and_port);
@@ -276,7 +276,7 @@ namespace razor {
 		
 	// returns if anything was recieved
 	bool Connection::receive(std::string* host_and_port, std::string* message) {
-		if(this->socket == NULL)
+		if(this->socket == nullptr)
 			return false;
 		
 		if(this->received_messages.size() > 0) {
@@ -409,10 +409,10 @@ namespace razor {
 		Connection c1, c2;
 		
 		c1.openSocket(11223);
-		if(c1.socket == NULL) return 1;
+		if(c1.socket == nullptr) return 1;
 		
 		c2.openSocket(11224);
-		if(c2.socket == NULL) return 2;
+		if(c2.socket == nullptr) return 2;
 		
 		// Send a small message
 		std::string inmsg = "Hello world";

@@ -226,14 +226,16 @@ namespace razor {
 	
 	void Razor::sendSync(std::string dest) {
 		auto tick_number = this->local_tick_number;
-		
-		// TODO: Get sync state
-		//this->server->serializeState(&state);
-		std::string* state = NULL;
+        
+        if(this->get_state_data_func == nullptr)
+            throw std::runtime_error("registerGetStateDataFunc must be called before sendSync");
+        
+		std::string state;
+        (*this->get_state_data_func)(&state);
 		
 		int pos = 0;
 		pos += copyIn(send_buffer, pos, tick_number);
-		pos += copyInString(send_buffer, pos, state);
+		pos += copyInString(send_buffer, pos, &state);
 		
 		std::string message;
 		message.resize(pos);
@@ -402,7 +404,7 @@ namespace razor {
 			
 			// TODO: remake state resynchronization
 			/*auto ts = (TrackerStates*)this->server->getHeuristic(HEURISTIC_TRACKER_STATES);
-			if(ts != NULL && ts->replay_runner != NULL) {
+			if(ts != nullptr && ts->replay_runner != nullptr) {
 				// replay from the daemon tick's number to our current frame.
 				std::cout << "< Queuing background netsync replay. Server0 frame: " << this->server->tick_number <<
 					" Daemon frame: " << daemon_tick_number << std::endl;
@@ -531,7 +533,7 @@ namespace razor {
 		if(this->create_player && !this->first_ping) {
 			if(now > this->create_player_delay) {
 				this->create_player = false;
-				if(this->server->getDataInternal(std::string("player-").append(local_player_name)) == NULL) {
+				if(this->server->getDataInternal(std::string("player-").append(local_player_name)) == nullptr) {
 					this->server->console(std::string("player add player-").append(local_player_name).append(" unit-").append(local_player_name));
 				}
 				this->set_team = true;
@@ -599,17 +601,26 @@ namespace razor {
 	void Razor::command(const std::string &command_data) {
 		this->sendCommand(command_data);
 	}
+    
+    void Razor::registerCallbackGetStateData(void (*get_state_data_func)(std::string*)) {
+        this->get_state_data_func = get_state_data_func;
+    }
 	
+    void testGetStateData(std::string*) {
+    }
+    
 	int razorUnitTest() {
 		std::cout << "Creating server..." << std::endl;
 		auto s = new Razor();
 		s->setPort(12320);
 		s->setDaemon();
+        s->registerCallbackGetStateData(&testGetStateData);
 		
 		std::cout << "Creating client..." << std::endl;
 		auto c = new Razor();
 		c->setPort(12321);
 		c->setDaemonAddress("127.0.0.1:12320");
+        c->registerCallbackGetStateData(&testGetStateData);
 		
 		// Server warmup frames
 		int sbt = 100;
@@ -618,7 +629,6 @@ namespace razor {
 		}
 		
 		nanotimediff error = -1555 * NANOS_PER_MILLI;
-		
 		
 		// Frame 1
 		int frame = 1;
